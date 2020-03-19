@@ -1,4 +1,4 @@
-<img src="_img/cover2.png" style="zoom:30%;">
+<img src="_img/cover.png" style="zoom:30%;">
 
 # LeetCode 解题笔记
 
