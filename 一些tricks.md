@@ -1,0 +1,79 @@
+# 一些tricks
+
+
+
+## 递归 & 搜索
+
+- 可以用`sys.setrecursionlimit(100000)`自定义最大递归深度（默认为`998`）。
+- dfs时，如果有重复的元素，可以先排序后用下面的方法剪枝：
+
+```python
+for i in range(n, l):
+    if i == n or nums[i] != nums[i-1]:  # 用不同递归次数来减枝
+        temp.append(nums[i])
+        dfs(i+1, temp)
+        temp.remove(nums[i])
+      
+```
+
+- dfs搜索的位置**可能出现重复**时，需要使用`visited`数组。
+
+## 动态规划
+
+
+- 动态规划的时候将空的情况也放在dp数组中考虑，有时可以简化问题。
+- 通配符`'*'`匹配字符串时，转移方程`dp[j][i]`=`dp[j][i-1]`or`dp[j-1][i]`。
+- 动态规划一般只考虑`dp[i]`和`dp[i-1]`之间的关系，尽量不要用max(`dp[:i]`)这样的关系。
+- 动态规划的缓存写法：
+
+```python
+from functools import lru_cache
+@lru_cache(None)
+def dp(i,j):
+    pass
+```
+- 动态规划中的**切割**问题。只有某半边符合要求时才有判断另外半边的必要。  
+
+## 字符串
+
+## 数组
+
+- 两数组对应元素相加：
+
+```python
+# a = [1, 2, 3] b = [4, 5, 6] c = [5, 7, 9]
+c = [sum(i) for i in zip(a, b)]
+```
+- 两数组合并：
+
+```python
+def merge(tmp1, tmp2):
+    k = len(tmp1) + len(tmp2)
+    return [max(tmp1, tmp2).pop(0) for _ in range(k)]
+  
+# merge([5, 3, 1], [2, 4, 6]) = [5,3,2,4,6,1]
+```
+
+- 二分查找插入的位置
+
+```python
+import bisect
+idx = bisect.bisect(dp, num)  # 查找应该插入的位置
+idx = bisect.bisect_left(dp, num)  #  #xdx重复
+bisect.insort(dp, num)  # 插入
+bisect.insort_left(dp, num)
+```
+
+## 数学
+
+- 最大公约数 `math.gcd(a, b)`
+
+## 位运算
+
+- `i & (i - 1)`可以去掉i最右边的一个1（如果有）。
+- `i >> 1`会把最低位去掉。  
+
+## 其他
+
+- 处理环的时候可以从某一点裂开，然后分几种情况分别讨论。
+- **原地算法**。一般的处理方法是用原空间的一些位置来做标记。
