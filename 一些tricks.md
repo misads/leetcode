@@ -1,7 +1,5 @@
 # 一些tricks
 
-
-
 ## 递归 & 搜索
 
 - 可以用`sys.setrecursionlimit(100000)`自定义最大递归深度（默认为`998`）。
@@ -36,7 +34,32 @@ def dp(i,j):
 
 ## 字符串
 
+- 双指针的写法：
+
+```python
+left = 0
+for right, char in enumerate(s):
+    pass
+```
+
+- 统计字符个数
+
+```python
+import collections
+a = 'aaabbbcc'
+c = collections.Counter(a)
+# c = Counter({'a': 3, 'b': 3, 'c': 2})
+```
+
 ## 数组
+
+
+- 创建矩阵
+
+```python
+# 创建m×n的矩阵
+m = [[0 for i in range(n)] for j in range(m)]
+```
 
 - 两数组对应元素相加：
 
@@ -62,6 +85,15 @@ idx = bisect.bisect(dp, num)  # 查找应该插入的位置
 idx = bisect.bisect_left(dp, num)  #  #xdx重复
 bisect.insort(dp, num)  # 插入
 bisect.insort_left(dp, num)
+```
+
+## 字典
+
+- 有默认值的字典
+
+```python
+from collections import defaultdict
+mem = defaultdict(int)
 ```
 
 ## 数学

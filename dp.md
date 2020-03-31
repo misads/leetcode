@@ -3249,9 +3249,71 @@ class Solution:
                     
 ```
 
+## A416. 分割等和子集
 
+难度 `中等`  
 
+#### 题目描述
 
+给定一个**只包含正整数**的**非空**数组。是否可以将这个数组分割成两个子集，使得两个子集的元素和相等。
+
+**注意:**
+
+1. 每个数组中的元素不会超过 100
+2. 数组的大小不会超过 200
+
+> **示例 1:**
+
+```
+输入: [1, 5, 11, 5]
+
+输出: true
+
+解释: 数组可以分割成 [1, 5, 5] 和 [11].
+```
+
+> **示例 2:**
+
+```
+输入: [1, 2, 3, 5]
+
+输出: false
+
+解释: 数组不能分割成两个元素和相等的子集.
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/partition-equal-subset-sum/>
+
+#### 思路  
+
+　　拆分成找全部数字之和一半的问题。用一个集合记录到当前为止出现过的和。  
+
+#### 代码  
+
+```python
+class Solution:
+    def canPartition(self, nums: List[int]) -> bool:
+        sums = sum(nums)
+        if sums % 2 != 0: return False
+        half_sum = sums // 2  # 全部数字之和的一半
+
+        set_sums = set()
+        set_sums.add(nums[0])
+        for i in range(1, len(nums)):
+            num = nums[i]
+            if num > half_sum: return False
+            if num == half_sum: return True
+            new_set = set()
+            for s in set_sums:
+                new_set.add(s + num)
+            set_sums = set_sums | new_set  # 取并集
+            if half_sum in set_sums:
+                return True
+
+        return False
+```
 
 
 ## A446. 等差数列划分 II - 子序列
@@ -3435,74 +3497,6 @@ class Solution(object):
                     num += distList[j][delta]
        
         return num
-```
-
-## A416. 分割等和子集
-
-难度 `中等`  
-
-#### 题目描述
-
-难度中等220收藏分享切换为英文关注反馈
-
-给定一个**只包含正整数**的**非空**数组。是否可以将这个数组分割成两个子集，使得两个子集的元素和相等。
-
-**注意:**
-
-1. 每个数组中的元素不会超过 100
-2. 数组的大小不会超过 200
-
-> **示例 1:**
-
-```
-输入: [1, 5, 11, 5]
-
-输出: true
-
-解释: 数组可以分割成 [1, 5, 5] 和 [11].
-```
-
-> **示例 2:**
-
-```
-输入: [1, 2, 3, 5]
-
-输出: false
-
-解释: 数组不能分割成两个元素和相等的子集.
-```
-
-#### 题目链接
-
-<https://leetcode-cn.com/problems/partition-equal-subset-sum/>
-
-#### 思路  
-
-　　拆分成找全部数字之和一半的问题。用一个集合记录到当前为止出现过的和。  
-
-#### 代码  
-
-```python
-class Solution:
-    def canPartition(self, nums: List[int]) -> bool:
-        sums = sum(nums)
-        if sums % 2 != 0: return False
-        half_sum = sums // 2  # 全部数字之和的一半
-
-        set_sums = set()
-        set_sums.add(nums[0])
-        for i in range(1, len(nums)):
-            num = nums[i]
-            if num > half_sum: return False
-            if num == half_sum: return True
-            new_set = set()
-            for s in set_sums:
-                new_set.add(s + num)
-            set_sums = set_sums | new_set  # 取并集
-            if half_sum in set_sums:
-                return True
-
-        return False
 ```
 
 ## A464. 我能赢吗
