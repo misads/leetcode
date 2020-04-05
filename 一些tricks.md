@@ -46,9 +46,16 @@ for right, char in enumerate(s):
 
 ```python
 import collections
-a = 'aaabbbcc'
+# a = 'aaabbbcc'
 c = collections.Counter(a)
 # c = Counter({'a': 3, 'b': 3, 'c': 2})
+```
+
+- 判断两个字符串字符是否相同
+
+```python
+# a = "abca"  b = "caab"
+sorted(a) == sorted(b)
 ```
 
 ## 数组
@@ -96,6 +103,25 @@ from collections import defaultdict
 mem = defaultdict(int)
 ```
 
+## 排序
+
+- 自定义比较函数
+
+```python
+from functools import cmp_to_key
+
+def cmpp(s1, s2):  # 定义一个比较函数
+    if int(s1 + s2) > int(s2 + s1):  # 也可以 return int(s1 + s2) - int(s2 + s1)
+        return 1
+    elif int(s1 + s2) < int(s2 + s1):
+        return -1
+    else:
+        return 0
+
+nums.sort(key=cmp_to_key(cmpp))
+
+```
+
 ## 数学
 
 - 最大公约数 `math.gcd(a, b)`
@@ -104,6 +130,7 @@ mem = defaultdict(int)
 
 - `i & (i - 1)`可以去掉i最右边的一个1（如果有）。
 - `i >> 1`会把最低位去掉。  
+- `x & (-x)`，称作lowbit，当x为0时结果为0；x为奇数时，结果为1；x为偶数时，结果为x中2的最大次方的因子。
 
 ## 其他
 
