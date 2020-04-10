@@ -109,6 +109,77 @@ class Solution:
         return max_path
 ```
 
+## A39. 组合总和
+
+难度 `中等`
+
+#### 题目描述
+
+给定一个**无重复元素**的数组 `candidates` 和一个目标数 `target` ，找出 `candidates` 中所有可以使数字和为 `target` 的组合。
+
+`candidates` 中的数字可以无限制重复被选取。
+
+**说明：**
+
+- 所有数字（包括 `target`）都是正整数。
+- 解集不能包含重复的组合。 
+
+> **示例 1:**
+
+```
+输入: candidates = [2,3,6,7], target = 7,
+所求解集为:
+[
+  [7],
+  [2,2,3]
+]
+```
+
+> **示例 2:**
+
+```
+输入: candidates = [2,3,5], target = 8,
+所求解集为:
+[
+  [2,2,2,2],
+  [2,3,3],
+  [3,5]
+]
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/combination-sum/>
+
+#### 思路  
+
+　　动态规划。`dp[i]`记录数字`i`的所有组成情况。如示例1对应`dp[2] = [[2]]`，`dp[4] = [[2, 2]]`。从`1`到`target`迭代。  
+
+#### 代码  
+
+```python
+class Solution:
+    def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
+        candidates.sort()
+        dp = [[] for i in range(target+1)]
+        for num in candidates:
+            if num > target:
+                continue
+            dp[num] = [(num,)]  # 一个数字组成的组合
+            
+        for i in range(1, target+1):
+            for num in candidates:
+                if i-num > 0 and len(dp[i-num])>0:
+                    for combine in dp[i-num]:
+                        a = list(combine)
+                        if num >= a[-1]:  # 确保新的组合是有序的
+                            a.append(num)
+                            if tuple(a) not in dp[i]:
+                                dp[i].append(tuple(a))
+
+        return dp[target]
+```
+
 ## A44. 通配符匹配
 
 难度 `困难`  
@@ -251,6 +322,325 @@ class Solution:
         return dp[-1][-1]
 ```
 
+## A53. 最大子序和
+
+难度 `简单`
+
+#### 题目描述
+
+给定一个整数数组 `nums` ，找到一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
+
+> **示例:**
+
+```
+输入: [-2,1,-3,4,-1,2,1,-5,4],
+输出: 6
+解释: 连续子数组 [4,-1,2,1] 的和最大，为 6。
+```
+
+> **进阶:**
+
+如果你已经实现复杂度为 O(*n*) 的解法，尝试使用更为精妙的分治法求解。 
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/maximum-subarray/>
+
+
+#### 思路  
+
+　　方法一：分治法。将列表`nums`从中间切成两半，最大子序和要么在左半边，要么在右半边，要么横跨左右两边。即`maxSubArray(i, j)` = max(`maxSubArray(i, mid)`，`maxSubArray(mid, j)`，`crossOver(mid)`)。  
+　　左右两边的最大子序和均使用递归来计算，横跨的最大子序和使用循环来计算。分治法的时间复杂度为`O(nlogn)`。**提交方法一的代码会超时**。  
+
+　　方法二：动态规划。用`m[i]`记录以某个元素为最后一个元素时的最大子序和。如果以前一个数结尾的最大子序和为负数，那么当前的数不使用之前的数反而更大。  
+
+　　<img src='_img/a53.png' style="zoom:35%;">
+
+　　一次遍历后。`m[i]`的`全局最大值`即为整个数组的最大子序和。  这种方法的时间复杂度为`O(n)`；若用固定空间来存放`m[i]`，空间复杂度为`O(1)`。  
+
+
+#### 代码  
+
+　　方法一(分治法)：
+
+```python
+class Solution:
+    
+    def maxSubArray(self, nums: List[int]) -> int:
+        def helper(nums, i, j):
+            if j <= i:
+                return -99999
+            if (j-i) == 1:
+                return nums[i]
+
+            mid = (i + j) // 2
+            left = helper(nums, i, mid)  # 计算左半边的最大子序和
+            right = helper(nums, mid, j)  # 计算右半边的最大子序和
+            ans = now_sum = nums[mid-1] + nums[mid]
+            # 计算中间的最大子序和
+            for i in range(mid-2, -1, -1):
+                now_sum += nums[i]
+                ans = max(ans, now_sum)
+            now_sum = ans
+            for i in range(mid+1, len(nums)):
+                now_sum += nums[i]
+                ans = max(ans, now_sum)
+
+            return max(left, right, ans)
+
+        return helper(nums, 0, len(nums))
+
+```
+
+　　方法二：
+
+```python
+class Solution:
+    
+    def maxSubArray(self, nums: List[int]) -> int:
+        n = len(nums)
+        if n == 1:
+            return nums[0]
+        ans = m_i = nums[0]  # 以某个结点为最后一个元素的最大子序和
+        for i in range(1, n):
+            num = nums[i]
+            # 更新下一个i的m_i
+            if m_i <= 0:
+                m_i = num
+            else:
+                m_i += num
+            ans = max(ans, m_i)
+        return ans
+
+```
+
+## A62. 不同路径
+
+难度 `中等`
+
+#### 题目描述
+
+一个机器人位于一个 *m x n* 网格的左上角 （起始点在下图中标记为“Start” ）。
+
+机器人每次只能向下或者向右移动一步。机器人试图达到网格的右下角（在下图中标记为“Finish”）。
+
+问总共有多少条不同的路径？
+
+![img](_img/62.png)
+
+例如，上图是一个7 x 3 的网格。有多少可能的路径？
+
+ 
+
+> **示例 1:**
+
+```
+输入: m = 3, n = 2
+输出: 3
+解释:
+从左上角开始，总共有 3 条路径可以到达右下角。
+1. 向右 -> 向右 -> 向下
+2. 向右 -> 向下 -> 向右
+3. 向下 -> 向右 -> 向右
+```
+
+> **示例 2:**
+
+```
+输入: m = 7, n = 3
+输出: 28
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/unique-paths/>
+
+
+#### 思路  
+
+
+　　\# 没入门动态规划之前，大佬：用动态规划可解 稍微入门动态规划后，大佬：一个方程就可解。  
+
+　　\# 我：？？？  
+
+　　方法一：动态规划。上边界和左边界的路径数为1。其他位置的路径数等于`上边格子的路径数`+`左边格子的路径数`。  
+
+　　方法二：机器人一定会走`m + n - 2`步，即从`m + n - 2`中挑出`m - 1`步向下走不就行了吗？即`C((m + n - 2), (m - 1))`。  
+
+#### 代码  
+
+　　方法一：  
+
+```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        if not m or not n:
+            return 0
+        # m * n
+        ans = [[1 for i in range(m)] for j in range(n)]
+
+        for i in range(1, n):
+            for j in range(1, m):
+                ans[i][j] = ans[i-1][j] + ans[i][j-1]
+
+        return ans[n-1][m-1]
+```
+
+　　方法二：  
+
+```python
+class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        def factor(num):
+            if num < 2:
+                return 1
+            res = 1
+            for i in range(1, num+1):
+                res *= i
+            return res
+
+        def A(m, n):
+            return factor(m) // factor(m-n)
+
+        def C(m, n):
+            return A(m, n) // factor(n)
+
+        return C(m+n-2,m-1)
+         
+```
+
+## A63. 不同路径 II
+
+难度 `中等`
+
+#### 题目描述
+
+一个机器人位于一个 *m x n* 网格的左上角 （起始点在下图中标记为“Start” ）。
+
+机器人每次只能向下或者向右移动一步。机器人试图达到网格的右下角（在下图中标记为“Finish”）。
+
+现在考虑网格中有障碍物。那么从左上角到右下角将会有多少条不同的路径？
+
+![img](_img/63.png)
+
+网格中的障碍物和空位置分别用 `1` 和 `0` 来表示。
+
+**说明：***m* 和 *n* 的值均不超过 100。
+
+> **示例 1:**
+
+```
+输入:
+[
+  [0,0,0],
+  [0,1,0],
+  [0,0,0]
+]
+输出: 2
+解释:
+3x3 网格的正中间有一个障碍物。
+从左上角到右下角一共有 2 条不同的路径：
+1. 向右 -> 向右 -> 向下 -> 向下
+2. 向下 -> 向下 -> 向右 -> 向右
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/unique-paths-ii/>
+
+#### 思路  
+
+　　\# 解法倒是简单，但是数据卡人。会有傻x把障碍放在入口？？？？？？？？？？？？？  
+
+　　\# 网友：是的，防止疫情扩散，所以做隔离  
+
+　　动态规划。所有有障碍物的位置路径数为`0`。先把第一行和第一列算好。其他位置的路径数等于`上边格子的路径数`+`左边格子的路径数`。  
+
+#### 代码  
+```python
+class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        # m * n
+        m = len(obstacleGrid)
+        n = len(obstacleGrid[0])
+        if obstacleGrid[0][0] == 1:  # 开始就是障碍物
+            return 0
+
+        ans = [[1 if not obstacleGrid[i][j] else 0 for j in range(n)] for i in range(m)]
+        print(ans)
+        for i in range(m):
+            for j in range(n):
+                if obstacleGrid[i][j] == 0:
+                    if i == 0 and j == 0:
+                        pass
+                    elif i == 0:
+                        ans[i][j] = ans[i][j-1]
+                    elif j == 0:
+                        ans[i][j] = ans[i-1][j]
+                    else:
+                        ans[i][j] = ans[i-1][j] + ans[i][j-1]
+
+        return ans[m-1][n-1]
+      
+```
+
+## A64. 最小路径和 
+
+难度 `中等`
+
+#### 题目描述
+
+给定一个包含非负整数的 *m* x *n* 网格，请找出一条从左上角到右下角的路径，使得路径上的数字总和为最小。
+
+**说明：**每次只能向下或者向右移动一步。
+
+> **示例:**
+
+```
+输入:
+[
+  [1,3,1],
+  [1,5,1],
+  [4,2,1]
+]
+输出: 7
+解释: 因为路径 1→3→1→1→1 的总和最小。
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/minimum-path-sum/>
+
+
+#### 思路  
+
+
+　　动态规划。先将第一行和第一列算好，再选较小的与自身相加。  
+
+#### 代码  
+```python
+class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        m = len(grid)
+        if m == 0:
+            return 0
+
+        n = len(grid[0])
+        ans = [[0 for i in range(n)] for j in range(m)]
+        for i in range(m):
+            for j in range(n):
+                if i == 0 and j == 0:
+                    ans[i][j] = grid[i][j]
+                elif i == 0:
+                    ans[i][j] = grid[i][j] +  ans[i][j-1]
+                elif j == 0:
+                    ans[i][j] = grid[i][j] +  ans[i-1][j]
+                else:
+                    ans[i][j] = grid[i][j] +  min(ans[i-1][j], ans[i][j-1])
+
+        return ans[m-1][n-1]
+```
+
 ## A70. 爬楼梯
 
 难度 `简单`  
@@ -357,8 +747,7 @@ exection -> execution (插入 'u')
 
 #### 思路  
 
-　　动态规划，题目看起来操作很复杂，从简单的情况开始一点点看。  
-　　令`dp[i][j]`表示`word1[:i]`变成`word2[:j]`的最少操作数。  
+　　动态规划，令`dp[i][j]`表示`word1[:i]`变成`word2[:j]`的最少操作数。  
 
 　　先考虑为空时的情况，`word1`为空时，`''`变成`word2[:j]`需要加上`j`个个字符。同样，`word2`为空时，`word1[:i]`变成`''`需要减去`i`个字符。因此，`dp[0][j]`=`j`，`dp[i][0]`=`i`。  
 
@@ -870,6 +1259,115 @@ class Solution:
                     dp[i][j] += dp[i-1][j-1]
 
         return dp[-1][-1]
+```
+
+## A118. 杨辉三角
+
+难度 `简单`  
+#### 题目描述
+
+给定一个非负整数 *numRows* ，生成杨辉三角的前 *numRows* 行。
+
+![img](_img/118.gif)
+
+在杨辉三角中，每个数是它左上方和右上方的数的和。
+
+> **示例:**
+
+```
+输入: 5
+输出:
+[
+     [1],
+    [1,1],
+   [1,2,1],
+  [1,3,3,1],
+ [1,4,6,4,1]
+]
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/pascals-triangle/>
+
+
+#### 思路  
+
+
+　　从上到下dp。  
+
+#### 代码  
+```python
+class Solution:
+    def generate(self, numRows: int) -> List[List[int]]:
+        if numRows == 0:
+            return []
+        elif numRows == 1:
+            return [[1]]
+
+        ans = [[1]] + [[1] + [0 for i in range(j)] + [1] for j in range(numRows-1)]
+        for i in range(2, len(ans)):
+            for j in range(1, i):
+                ans[i][j] = ans[i-1][j-1] + ans[i-1][j]
+
+        return ans
+```
+
+## A120. 三角形最小路径和
+
+难度 `中等`  
+#### 题目描述
+
+给定一个三角形，找出自顶向下的最小路径和。每一步只能移动到下一行中相邻的结点上。
+
+例如，给定三角形：
+
+```
+[
+     [2],
+    [3,4],
+   [6,5,7],
+  [4,1,8,3]
+]
+```
+
+自顶向下的最小路径和为 `11`（即，**2** + **3** + **5** + **1** = 11）。
+
+**说明：**
+
+如果你可以只使用 *O*(*n*) 的额外空间（*n* 为三角形的总行数）来解决这个问题，那么你的算法会很加分。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/triangle/>
+
+
+#### 思路  
+
+
+　　从上到下动态规划。
+
+#### 代码  
+```python
+class Solution:
+    def minimumTotal(self, triangle: List[List[int]]) -> int:
+        n = len(triangle)
+        if n == 0:
+            return 0
+        ans = 0
+        dp = [[0 for i in range(j+1)] for j in range(n)]
+        dp[0][0] = triangle[0][0]
+        for i in range(1, n):
+            for j in range(i+1):
+                cur = triangle[i][j]
+                if j==0:  # 第一个数
+                    dp[i][j] = cur + dp[i-1][0]
+                elif j == i:  # 最后一个数
+                    dp[i][j] = cur + dp[i-1][-1]
+                else:  # 中间的数
+                    dp[i][j] = cur + min(dp[i-1][j-1], dp[i-1][j])
+
+        return min(dp[-1])
 ```
 
 ## A123. 买卖股票的最佳时机 III
@@ -1623,99 +2121,6 @@ class Solution:
                                 
         return ans ** 2
         
-```
-
-## A264. 丑数 II
-
-难度 `中等`  
-#### 题目描述
-
-编写一个程序，找出第 `n` 个丑数。
-
-丑数就是只包含质因数 `2, 3, 5` 的**正整数**。
-
-> **示例:**
-
-```
-输入: n = 10
-输出: 12
-解释: 1, 2, 3, 4, 5, 6, 8, 9, 10, 12 是前 10 个丑数。
-```
-
-**说明:**  
-
-1. `1` 是丑数。
-2. `n` **不超过**1690。
-
-#### 题目链接
-
-<https://leetcode-cn.com/problems/ugly-number-ii/>
-
-
-#### 思路  
-
-　　方法一：小顶堆，每次取堆顶的元素（也就是最小的），第`i`次取的就是第`i`个丑数。再把它分别乘以`2`、`3`、`5`插入到堆中，如下图所示：  
-
-　　<img src="_img/a264_1.png" style="zoom:33%"/>  
-
-　　为了避免出现重复，用一个集合`used_set`记录已经出现过的元素。已经出现过的元素就不会再入堆了。  
-
-　　方法二：三指针法。使用三个指针`id_2`、`id_3`、`id_5`，分别表示2、3、5应该乘以丑数数组中的哪个元素。如下图所示：  
-
-　　<img src="_img/a264_2.png" style="zoom:40%"/>
-
-　　初始时丑数数组 =`[1]`，三个指针均为`0`，比较三个指针乘积的结果，把最小的作为下一个丑数，并且这个指针向右移`1`。  
-
-　　如果有多个指针乘积结果相同（如图中的2×3=3×2），则同时移动它们。  
-
-#### 代码  
-
-方法一（小顶堆+去重）：
-
-```python
-class Solution:
-    def nthUglyNumber(self, n: int) -> int:
-        if n == 1: return 1
-        cur = 1
-        used_set = {1}
-        factors = (2, 3, 5)
-        
-        import heapq
-        heap = []
-        for i in range(2, n+1):
-            for f in factors:
-                new_num = cur * f
-                if new_num not in used_set:
-                    used_set.add(new_num)
-                    heapq.heappush(heap, new_num)
-            cur = heapq.heappop(heap)
-
-        return cur
-
-```
-
-方法二（三指针）：
-
-```python
-class Solution:
-    def nthUglyNumber(self, n: int) -> int:
-        if n == 1: return 1
-        result = [0] * n
-        result[0] = 1
-        id_2, id_3, id_5 = 0, 0, 0
-        for i in range(1, n):
-            a = result[id_2] * 2
-            b = result[id_3] * 3
-            c = result[id_5] * 5
-            minimal = min(a, b, c)
-
-            if a == minimal: id_2 += 1
-            if b == minimal: id_3 += 1
-            if c == minimal: id_5 += 1
-
-            result[i] = minimal
-            
-        return result[-1]
 ```
 
 ## A279. 完全平方数
@@ -3572,85 +3977,3 @@ class Solution:
         return dp(a, desiredTotal)
       
 ```
-
-
-
-
-
-
-
-
-难度 `中等`  
-
-#### 题目描述
-
-
-
-#### 题目链接
-
-
-
-#### 思路  
-
-　　
-
-#### 代码  
-
-```python
-
-```
-
-
-
-
-
-
-
-
-难度 `中等`  
-
-#### 题目描述
-
-
-
-#### 题目链接
-
-
-
-#### 思路  
-
-　　
-
-#### 代码  
-
-```python
-
-```
-
-
-
-
-
-
-
-
-难度 `中等`  
-
-#### 题目描述
-
-
-
-#### 题目链接
-
-
-
-#### 思路  
-
-　　
-
-#### 代码  
-
-```python
-
-```
-

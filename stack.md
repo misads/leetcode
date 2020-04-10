@@ -1,5 +1,172 @@
 # 栈
 
+## A84. 柱状图中最大的矩形
+
+难度 `困难`  
+
+#### 题目描述
+
+给定 *n* 个非负整数，用来表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 1 。  
+
+求在该柱状图中，能够勾勒出来的矩形的最大面积。  
+
+![img](_img/84_1.png)
+
+以上是柱状图的示例，其中每个柱子的宽度为 1，给定的高度为 `[2,1,5,6,2,3]`。
+
+ 
+
+![img](_img/84_2.png)
+
+图中阴影部分为所能勾勒出的最大矩形面积，其面积为 `10` 个单位。 
+
+> **示例:**
+
+```
+输入: [2,1,5,6,2,3]
+输出: 10
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/largest-rectangle-in-histogram/>
+
+#### 思路  
+
+　　单调栈，新元素如果小于等于栈顶元素则**不断**弹栈。实际实现时栈内记录的是元素的下标。
+
+　　为了方便理解，假设此时栈内元素为 `A`  `B` 。遇到元素`C <= B`，需要做出栈处理（然后再将`C`入栈），则对于即将要出栈的B来说：`A`是从`B`起向左，第一个小于`B`的元素；`C`是从`B`起向右，第一个小于等于B的元素。`A`和`C`的下标之差即高度为`B`的最大宽度。    
+
+　　例如：`heights= [2,1,5,6,2,3]`。栈操作过程如下：  
+
+```
+入栈 2
+出栈 2 宽度 1 ans=2
+入栈 1
+入栈 5
+入栈 6
+出栈 6 宽度 1 ans=6
+出栈 5 宽度 2 ans=10
+入栈 2
+入栈 3
+出栈 3 宽度 1 ans不变
+出栈 2 宽度 4 ans不变
+出栈 1 宽度 6 ans不变
+```
+
+#### 代码  
+
+```python
+class Solution:
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        n = len(heights)
+        if n == 0:
+            return 0
+
+        s = [-1]
+        heights.append(0)
+        ans = 0
+        for i, h in enumerate(heights):
+            while len(s) >= 2 and h <= heights[s[-1]]:  # 出栈
+                last = s.pop()  
+                before = s[-1]
+                w = i - before - 1
+                ans = max(ans, heights[last] * w)
+                # print('出栈', heights[last], '宽度', w)
+
+            if len(s)==0 or h >= heights[s[-1]]:  # 入栈
+                s.append(i)
+                # print('入栈', heights[i])
+
+        return ans
+```
+
+## A85. 最大矩形
+
+难度 `困难`  
+
+#### 题目描述
+
+给定一个仅包含 0 和 1 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积。
+
+> **示例:**
+
+```
+输入:
+[
+  ["1","0","1","0","0"],
+  ["1","0","1","1","1"],
+  ["1","1","1","1","1"],
+  ["1","0","0","1","0"]
+]
+输出: 6
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/maximal-rectangle/>
+
+#### 思路  
+
+　　对每一行都求出每一列的高度，然后每行依次调用上一题[A84. 柱状图中最大的矩形](/stack?id=a84-柱状图中最大的矩形)的`largestRectangleArea`函数。  
+　　例如示例对应的高度矩阵为：
+
+```
+[
+  [1, 0, 1, 0, 0],  # 该行调用largestRectangleArea结果为1
+  [2, 0, 2, 1, 1],  # 该行调用largestRectangleArea结果为3
+  [3, 1, 3, 2, 2],  # 该行调用largestRectangleArea结果为6
+  [4, 0, 0, 3, 0]   # 该行调用largestRectangleArea结果为1
+]
+```
+
+#### 代码  
+
+```python
+class Solution:
+    def largestRectangleArea(self, heights: List[int]) -> int:
+        n = len(heights)
+        if n == 0:
+            return 0
+
+        s = [-1]
+        heights.append(0)
+        ans = 0
+        for i, h in enumerate(heights):
+            while len(s) >= 2 and h <= heights[s[-1]]:  # 出栈
+                last = s.pop()  
+                before = s[-1]
+                w = i - before - 1
+                ans = max(ans, heights[last] * w)
+
+            if len(s)==0 or h >= heights[s[-1]]:  # 入栈
+                s.append(i)
+        return ans
+
+    def maximalRectangle(self, matrix: List[List[str]]) -> int:
+        m = len(matrix)
+        if m == 0:
+            return 0
+        n = len(matrix[0])
+        helper = [[0 for i in range(n)] for i in range(m)]
+        for j in range(n):
+            tmp = 0
+            for i in range(m):
+                if matrix[i][j] == '1':
+                    tmp += 1
+                    helper[i][j] = tmp
+                else:
+                    tmp = 0
+
+        ans = 0
+        for heights in helper:
+            aera_line = self.largestRectangleArea(heights)
+            ans = max(ans, aera_line)
+        
+        return ans
+
+```
+
 ## A224. 基本计算器
 
 难度`困难`

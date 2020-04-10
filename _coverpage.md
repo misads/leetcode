@@ -1,6 +1,6 @@
 <img src="_img/cover.png" style="zoom:30%;">
 
-# LeetCode 解题笔记
+# xyu の LeetCode 题解
 
 > 每日一题，在线更新！
 

@@ -88,10 +88,14 @@ def merge(tmp1, tmp2):
 
 ```python
 import bisect
-idx = bisect.bisect(dp, num)  # 查找应该插入的位置
-idx = bisect.bisect_left(dp, num)  #  #xdx重复
-bisect.insort(dp, num)  # 插入
-bisect.insort_left(dp, num)
+idx = bisect.bisect(asc, num)  # 查找应该插入的位置
+idx = bisect.bisect_left(asc, num)  #  有重复元素时找到最左边的位置
+bisect.insort(asc, num)  # 插入
+bisect.insort_left(asc, num)
+
+# 从升序数组asc中删除num(复杂度O(logn))
+idx = bisect.bisect_left(asc, num); asc.pop(idx)
+
 ```
 
 ## 字典
@@ -125,6 +129,17 @@ nums.sort(key=cmp_to_key(cmpp))
 ## 数学
 
 - 最大公约数 `math.gcd(a, b)`
+
+## 链表&树
+
+- 链表逆序
+
+```python
+node = head
+rever = None
+while node:
+    node.next, rever, node = rever, node, node.next
+```
 
 ## 位运算
 
