@@ -1,4 +1,4 @@
-<img src="_img/cover.png" style="zoom:30%;">
+<img src="_img/cover2.png" style="zoom:33%;">
 
 # xyu の LeetCode 题解
 
