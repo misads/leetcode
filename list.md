@@ -1,5 +1,224 @@
 # 链表
 
+## A24. 两两交换链表中的节点
+
+难度`中等`
+
+#### 题目描述
+
+给定一个链表，两两交换其中相邻的节点，并返回交换后的链表。
+
+**你不能只是单纯的改变节点内部的值**，而是需要实际的进行节点交换。
+
+> **示例:**
+
+```
+给定 1->2->3->4, 你应该返回 2->1->4->3.
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/swap-nodes-in-pairs/>
+
+#### **思路:**
+
+　　可以用递归来做，先交换前两个结点，然后递归地处理后面的链表。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def swapPairs(self, head: ListNode) -> ListNode:
+        if not head or not head.next:
+            return head
+
+        p, q = head, head.next
+        p.next, q.next = q.next, p  # 将 p->q 交换为 q->p
+
+        p.next = self.swapPairs(p.next)
+
+        return q
+
+```
+
+## A25. K 个一组翻转链表
+
+难度`困难`
+
+#### 题目描述
+
+给你一个链表，每 *k* 个节点一组进行翻转，请你返回翻转后的链表。
+
+*k* 是一个正整数，它的值小于或等于链表的长度。
+
+如果节点总数不是 *k* 的整数倍，那么请将最后剩余的节点保持原有顺序。
+
+> **示例：**
+
+给你这个链表：`1->2->3->4->5`
+
+当 *k* = 2 时，应当返回: `2->1->4->3->5`
+
+当 *k* = 3 时，应当返回: `3->2->1->4->5`
+**说明：**
+
+- 你的算法只能使用常数的额外空间。
+- **你不能只是单纯的改变节点内部的值**，而是需要实际进行节点交换。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/reverse-nodes-in-k-group/>
+
+#### **思路:**
+
+　　先将前`k`个结点翻转，然后递归地对后面的链表进行处理。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def reverseKGroup(self, head: ListNode, k: int) -> ListNode:
+        if k <= 1:
+            return head
+        node = head
+        for _ in range(k):
+            if not node:
+                return head
+            node = node.next
+
+        rever = None
+        node = head
+        for _ in range(k):
+            node.next, rever, node = rever, node, node.next
+
+        temp = rever
+        for _ in range(k-1):
+            temp = temp.next
+
+        temp.next = self.reverseKGroup(node, k)
+
+        return rever
+
+```
+
+## A82. 删除排序链表中的重复元素 II
+
+难度`中等`
+
+#### 题目描述
+
+给定一个排序链表，删除所有含有重复数字的节点，只保留原始链表中 *没有重复出现* 的数字。
+
+> **示例 1:**
+
+```
+输入: 1->2->3->3->4->4->5
+输出: 1->2->5
+```
+
+> **示例 2:**
+
+```
+输入: 1->1->1->2->3
+输出: 2->3
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/remove-duplicates-from-sorted-list-ii/>
+
+#### **思路:**
+
+　　用一个字典记录每个数字出现的次数，如果出现次数大于`1`就删除。  
+
+#### **代码:**
+
+```python
+from collections import defaultdict
+
+class Solution:
+    def deleteDuplicates(self, head: ListNode) -> ListNode:
+        if not head:
+            return
+
+        ans = ListNode(0)
+        cur = ans
+        mem = defaultdict(int)
+        node = head
+        while node:
+            mem[node.val] += 1
+            node = node.next
+
+        node = head
+        while node:
+            if mem[node.val] == 1:
+                cur.next = node
+                cur = node
+            else:
+                cur.next = None
+            node = node.next
+
+        return ans.next
+
+```
+
+## A92. 反转链表 II
+
+难度`中等`
+
+#### 题目描述
+
+反转从位置 *m* 到 *n* 的链表。请使用一趟扫描完成反转。
+
+**说明:**
+1 ≤ *m* ≤ *n* ≤ 链表长度。
+
+> **示例:**
+
+```
+输入: 1->2->3->4->5->NULL, m = 2, n = 4
+输出: 1->4->3->2->5->NULL
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/reverse-linked-list-ii/>
+
+#### **思路:**
+
+　　第一个指针先从头指针向后移`m-1`次，然后反转`n-m+1`个结点，最后把结尾的结点连在最后即可。  
+
+#### **代码:**
+
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+
+class Solution:
+    def reverseBetween(self, head: ListNode, m: int, n: int) -> ListNode:
+        node = head
+        dummy = ListNode(0)
+
+        mid = dummy
+        for _ in range(m-1):
+            mid = node
+            node = node.next
+
+        mid2 = node
+        rever = None
+
+        for _ in range(n-m+1):
+            node.next, rever, node = rever, node, node.next
+
+        mid.next = rever  # mid是前面的部分，rever是反转的部分
+        mid2.next = node  # mid2是反转部分的最后一个结点，node是后面的部分
+        return rever if m == 1 else head
+      
+```
+
 ## A147. 对链表进行插入排序
 
 难度`中等`

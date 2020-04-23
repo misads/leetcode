@@ -179,3 +179,150 @@ class Solution:
         return result[-1]
 ```
 
+## A502. IPO
+
+难度`困难`
+
+#### 题目描述
+
+假设 力扣（LeetCode）即将开始其 IPO。为了以更高的价格将股票卖给风险投资公司，力扣 希望在 IPO 之前开展一些项目以增加其资本。 由于资源有限，它只能在 IPO 之前完成最多 **k** 个不同的项目。帮助 力扣 设计完成最多 **k** 个不同项目后得到最大总资本的方式。
+
+给定若干个项目。对于每个项目 **i**，它都有一个纯利润 **Pi**，并且需要最小的资本 **Ci** 来启动相应的项目。最初，你有 **W** 资本。当你完成一个项目时，你将获得纯利润，且利润将被添加到你的总资本中。
+
+总而言之，从给定项目中选择最多 **k** 个不同项目的列表，以最大化最终资本，并输出最终可获得的最多资本。
+
+> **示例 1:**
+
+```
+输入: k=2, W=0, Profits=[1,2,3], Capital=[0,1,1].
+
+输出: 4
+
+解释:
+由于你的初始资本为 0，你尽可以从 0 号项目开始。
+在完成后，你将获得 1 的利润，你的总资本将变为 1。
+此时你可以选择开始 1 号或 2 号项目。
+由于你最多可以选择两个项目，所以你需要完成 2 号项目以获得最大的资本。
+因此，输出最后最大化的资本，为 0 + 1 + 3 = 4。
+```
+**注意:**
+
+1. 假设所有输入数字都是非负整数。
+2. 表示利润和资本的数组的长度不超过 50000。
+3. 答案保证在 32 位有符号整数范围内。
+
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/ipo/>
+
+#### **思路:**
+
+　　贪心算法，由于要实现最大的利润。每次都在**当前成本足够的**项目中选择**利润最大**的。  
+
+　　**方法一：**遍历所有当前成本足够的，然后选择利润最大的。超时。  
+
+　　**方法二：**在方法一中我们发现，之前成本足够的，在获得新的收益后成本一定也足够了，因此不需要重新遍历。维护一个降序数组`asc`，以**收益降序的顺序**存放所有成本足够的项目。每次都做第一个项目即可。  
+
+　　**方法三：**方法二的升序数组的结构用堆来实现更为高效。维护两个堆，`堆1`是小顶堆，存放所有的成本；`堆2`是大顶堆，存放所有的利润。每次用`堆1`中把成本足够的项目都取出来，利润值放到`堆2`中。然后做`堆2`的第一个项目即可。  
+
+#### **代码:**
+
+　　**方法一：**(朴素贪心, 超时)
+
+```python
+class Solution:
+    def findMaximizedCapital(self, k: int, W: int, Profits: List[int], Capital: List[int]) -> int:
+        n = len(Profits)
+        if not n:
+            return W
+
+        asc = [[Capital[i], Profits[i]] for i in range(n)]
+        asc.sort()
+
+        ans = W  # 初始金钱
+        for _ in range(k):
+            maximal = (0, 0)  # index, num
+            for i, (cost, profit) in enumerate(asc):
+                if cost <= ans:
+                    if profit > maximal[1]:
+                        maximal = (i, profit)
+
+                if i == len(asc) - 1 or cost > ans:  # 钱不够了
+                    if maximal[1]:
+                        ans += maximal[1]
+                        asc.pop(maximal[0])
+                        break
+                    else:
+                        return ans
+
+        return ans
+
+```
+
+　　**方法二：**(升序数组, 476ms)
+
+```python
+import bisect
+class Solution:
+    def findMaximizedCapital(self, k: int, W: int, Profits: List[int], Capital: List[int]) -> int:
+        n = len(Profits)
+        if not n:
+            return W
+
+        combine = [[Capital[i], Profits[i]] for i in range(n)]
+        combine.sort()
+
+        asc = []
+        ans = W  # 初始金钱
+        for _ in range(k):
+            i = 0
+            while i < len(combine):
+                cost, profit = combine[i]
+                if cost <= ans:
+                    bisect.insort(asc, profit)
+                    combine.pop(i)
+                    continue
+
+                elif i == len(combine) - 1 or cost > ans:  # 钱不够了
+                    if not asc:
+                        return ans
+                    ans += asc.pop()  # 取最大的
+                    break
+                i += 1
+            else:
+                if not asc:
+                    return ans
+                ans += asc.pop()  # 取最大的
+
+        return ans
+
+```
+
+　　**方法三：**(最大最小堆, 276ms)
+
+```python
+class Solution:
+    def findMaximizedCapital(self, k: int, W: int, Profits: List[int], Capital: List[int]) -> int:
+        n = len(Profits)
+        if not n:
+            return W
+
+        combine = list(zip(Capital, Profits))
+
+        heapify(combine)
+
+        ans = W
+        heap = []
+        for _ in range(k):
+            while combine and combine[0][0] <= ans:  # 够投资的
+                heappush(heap, - heappop(combine)[1])
+
+            if not heap:
+                break
+
+            ans += -heappop(heap)
+
+        return ans
+```
+

@@ -932,6 +932,80 @@ class Solution:
 
 ```
 
+## A29. 两数相除
+
+难度`中等`
+
+#### 题目描述
+
+给定两个整数，被除数 `dividend` 和除数 `divisor`。将两数相除，要求不使用乘法、除法和 mod 运算符。
+
+返回被除数 `dividend` 除以除数 `divisor` 得到的商。
+
+整数除法的结果应当截去（`truncate`）其小数部分，例如：`truncate(8.345) = 8` 以及 `truncate(-2.7335) = -2`
+
+> **示例 1:**
+
+```
+输入: dividend = 10, divisor = 3
+输出: 3
+解释: 10/3 = truncate(3.33333..) = truncate(3) = 3
+```
+
+> **示例 2:**
+
+```
+输入: dividend = 7, divisor = -3
+输出: -2
+解释: 7/-3 = truncate(-2.33333..) = -2
+```
+
+**提示：**
+
+- 被除数和除数均为 32 位有符号整数。
+- 除数不为 0。
+- 假设我们的环境只能存储 32 位有符号整数，其数值范围是 [−231,  231 − 1]。本题中，如果除法结果溢出，则返回 231 − 1。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/divide-two-integers/>
+
+#### **思路:**
+
+　　模拟除法的过程。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def divide(self, dividend: int, divisor: int) -> int:
+        if dividend * divisor < 0:
+            factor = -1
+        else: 
+            factor = 1
+
+        dividend = abs(dividend)
+        divisor = abs(divisor)
+
+        ans = ''
+        mod = '0'
+        for i, d in enumerate(str(dividend)):
+            nxt = int(mod + d)  # 将被除数的一位拿下来 加到余数上
+            div, mod = divmod(nxt, divisor)
+            ans += str(div)
+            mod = str(mod)        
+
+        if not ans: ans = '0'
+        ans = factor * int(ans)
+        ans = min(ans, 2**31 - 1)
+        ans = max(ans, -2**31 )
+
+        return ans
+
+```
+
+
+
 ## A30. 串联所有单词的子串
 
 难度 `困难`  
@@ -1736,7 +1810,7 @@ class Solution:
 
 #### 题目描述
 
-给定两个单词（*beginWord* 和 *endWord*）和一个字典 *wordList*，找出所有从 *beginWord* 到 *endWord* 的最短转换序列。转换需遵循如下规则：
+给定两个单词（*beginWord* 和 *endWord*）和一个字典 *wordList* ，找出所有从 *beginWord* 到 *endWord* 的最短转换序列。转换需遵循如下规则：
 
 1. 每次转换只能改变一个字母。
 2. 转换过程中的中间单词必须是字典中的单词。

@@ -1575,3 +1575,79 @@ class Solution:
 
 ```
 
+## A面试题51. 数组中的逆序对
+
+难度`困难`
+
+#### 题目描述
+
+在数组中的两个数字，如果前面一个数字大于后面的数字，则这两个数字组成一个逆序对。输入一个数组，求出这个数组中的逆序对的总数。
+
+> **示例 1:**
+
+```
+输入: [7,5,6,4]
+输出: 5
+```
+
+**限制：**
+
+```
+0 <= 数组长度 <= 50000
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/shu-zu-zhong-de-ni-xu-dui-lcof/>
+
+#### **思路:**
+
+　　**方法一：**二分法，维护一个升序数组`asc`，存放已有的数字。由于后放进去的数字下标大，找到`asc`中比它大的数有几个即可。  
+
+　　**方法二：**归并排序，先分别计算左右半边有多少逆序对，然后计算**一个数在左边，一个数在右边**的逆序对的个数。  
+
+#### **代码:**
+
+　　**方法一：**(二分法，2020ms)  
+
+```python
+import bisect
+class Solution:
+    def reversePairs(self, nums: List[int]) -> int:
+        asc = []
+        ans = 0
+        for num in nums:
+            idx = bisect.bisect(asc, num)
+            ans += len(asc) - idx
+            bisect.insort(asc, num)
+
+        return ans
+
+```
+
+　　**方法二：**(归并排序，1464 ms)  
+
+```python
+import bisect
+class Solution:
+    def reversePairs(self, nums: List[int]) -> int:
+        def merge_sort(i, j):
+            if j - i <= 1:  # 只有1个数或0个数
+                return 0
+            mid = (i + j)//2
+            left = merge_sort(i, mid)
+            right = merge_sort(mid, j)
+            ans = left + right
+            
+            b = sorted(nums[mid:j])  # 左边比右边大
+         
+            for a in range(i, mid):
+                idx = bisect.bisect_left(b, nums[a])
+                ans += idx
+
+            return ans
+
+        return merge_sort(0, len(nums))
+
+```
+

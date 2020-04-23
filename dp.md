@@ -3977,3 +3977,534 @@ class Solution:
         return dp(a, desiredTotal)
       
 ```
+
+## A1278. 分割回文串 III
+
+难度`困难`
+
+#### 题目描述
+
+给你一个由小写字母组成的字符串 `s`，和一个整数 `k`。
+
+请你按下面的要求分割字符串：
+
+- 首先，你可以将 `s` 中的部分字符修改为其他的小写英文字母。
+- 接着，你需要把 `s` 分割成 `k` 个非空且不相交的子串，并且每个子串都是回文串。
+
+请返回以这种方式分割字符串所需修改的最少字符数。
+
+> **示例 1：**
+
+```
+输入：s = "abc", k = 2
+输出：1
+解释：你可以把字符串分割成 "ab" 和 "c"，并修改 "ab" 中的 1 个字符，将它变成回文串。
+```
+
+> **示例 2：**
+
+```
+输入：s = "aabbc", k = 3
+输出：0
+解释：你可以把字符串分割成 "aa"、"bb" 和 "c"，它们都是回文串。
+```
+
+> **示例 3：**
+
+```
+输入：s = "leetcode", k = 8
+输出：0
+```
+
+**提示：**
+
+- `1 <= k <= s.length <= 100`
+- `s` 中只含有小写英文字母。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/palindrome-partitioning-iii/>
+
+#### **思路:**
+
+　　动态规划。 `dp[i][k]`表示`s[:i]`分割成`k`个子串需要修改的最少字符数。  
+
+　　对于`k=1`的情况，我们直接将字符串`s[:i]`的前一半和后一半的反序作对比，不同字母的个数就是最少需要修改的字符数。如下图所示：  
+
+<img src="_img/a1278.png" style="zoom:50%"/>
+
+　　对于`k>1`的情况，我们假设在`j`的位置进行最后一次分割，那么`s[:j]`需要分割为`k-1`个子串，`s[j:i]`需要分割成`1`个子串。`s[:j]`分成`k-1`个子串需要修改的字符数为`dp[j][k-1]`，`s[j:i]`分成`1`个子串需要修改的字符数仍然使用上图的方法计算。  
+
+　　状态转移方程`dp[i][k] = min(dp[i][k], dp[j][k-1] + get_change(j, i))`。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def palindromePartition(self, s: str, k: int) -> int:
+        # dp[i][k] 表示s[:i]分割成k个子串需要修改的最少字符数
+        n = len(s)
+        dp = [[float('inf') for _ in range(k+1)] for _ in range(n+1)]
+        
+        from functools import lru_cache
+        @lru_cache(None)
+        def get_change(j, i):  # 获取s[j:i]变成回文串需要修改的最少字符数
+            pos = s[j:i]
+            rever = pos[::-1]
+            dp_i = 0
+            for k in range((i-j)//2):
+                if pos[k] != rever[k]:
+                    dp_i += 1
+            return dp_i
+        
+        for i in range(n+1):
+            dp[i][1] = get_change(0, i)
+            
+        for kk in range(2, k + 1):
+            for i in range(n + 1):
+                for j in range(i + 1):
+                    dp[i][kk] = min(dp[i][kk], dp[j][kk-1] + get_change(j, i))  # s[:j]  s[j:i]
+            
+        # print(dp)
+        return dp[-1][-1]
+                
+
+```
+
+## A1349. 参加考试的最大学生数
+
+难度`困难`
+
+#### 题目描述
+
+给你一个 `m * n` 的矩阵 `seats` 表示教室中的座位分布。如果座位是坏的（不可用），就用 `'#'` 表示；否则，用 `'.'` 表示。
+
+学生可以看到左侧、右侧、左上、右上这四个方向上紧邻他的学生的答卷，但是看不到直接坐在他前面或者后面的学生的答卷。请你计算并返回该考场可以容纳的一起参加考试且无法作弊的最大学生人数。
+
+学生必须坐在状况良好的座位上。
+
+> **示例 1：**
+
+<img src="/_img/1349.png" style="zoom:55%"/>
+
+```
+输入：seats = [["#",".","#","#",".","#"],
+              [".","#","#","#","#","."],
+              ["#",".","#","#",".","#"]]
+输出：4
+解释：教师可以让 4 个学生坐在可用的座位上，这样他们就无法在考试中作弊。 
+```
+
+> **示例 2：**
+
+```
+输入：seats = [[".","#"],
+              ["#","#"],
+              ["#","."],
+              ["#","#"],
+              [".","#"]]
+输出：3
+解释：让所有学生坐在可用的座位上。
+```
+
+> **示例 3：**
+
+```
+输入：seats = [["#",".",".",".","#"],
+              [".","#",".","#","."],
+              [".",".","#",".","."],
+              [".","#",".","#","."],
+              ["#",".",".",".","#"]]
+输出：10
+解释：让学生坐在第 1、3 和 5 列的可用座位上。
+```
+
+**提示：**
+
+- `seats` 只包含字符 `'.' 和``'#'`
+- `m == seats.length`
+- `n == seats[i].length`
+- `1 <= m <= 8`
+- `1 <= n <= 8`
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/maximum-students-taking-exam/>
+
+#### **思路:**
+
+　　状态压缩dp。  
+
+　　因为`m`和`n`的范围都很小。因此可以用`2^n`，即最大为`128`的数的二进制位来表示坐或者不坐的状态。  
+
+　　先将座位💺的`"#"`转为`1`，`"."`转为`0`，如果座位和当前状态`与运算`结果为 0，表示可以这么坐。例如`"#.##.#"`转成二进制为`"101101"`，因此可行的坐人方式只有`"010010"`、`"000010"`和`"010000"`三种。  
+
+　　判断左右是否坐人可以用`state & state << 1`和`state & state >> 1`来判断，也可以转成二进制判断字符串中是否有`"11"`。  
+
+　　判断左前方和右前方是否坐人可以用`state & pre << 1`和`state & pre >> 1`来判断。  
+
+　　从前往后dp，`dp[line][s]`表示第`line`行状态为`s`时**总共**坐的人数，有状态转移方程`dp[line][state] = max(dp[line][state],  dp[line-1][pre] + state.count('1')`。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def maxStudents(self, seats: List[List[str]]) -> int:
+        m = len(seats)
+        if not m:
+            return 0
+        n = len(seats[0])
+        dp = [[0 for _ in range(2**n)] for _ in range(m)]   # 8 * 64
+
+        # 将 # 设为 1，. 设为0，如果与运算结果为 0，表示可以坐人
+        seats = [int(''.join(line).replace('#', '1').replace('.', '0'), 2) for line in seats]
+
+        for line in range(m):
+            for state in range(2 ** n):
+                if '11' in bin(state) or seats[line] & state:  # 左右有人 或者与座位冲突
+                    continue
+
+                for pre in range(2**n):  # 前面的状态
+                    if pre & state >> 1 or pre & state << 1:
+                        continue
+    
+                    if line == 0:
+                        dp[0][state] = bin(state).count('1')
+                    else:
+                        dp[line][state] = max(dp[line][state],  dp[line-1][pre] + bin(state).count('1'))
+
+        return max(dp[-1])
+      
+```
+
+## A1411. 给 N x 3 网格图涂色的方案数
+
+难度`困难`
+
+#### 题目描述
+
+你有一个 `n x 3` 的网格图 `grid` ，你需要用 **红，黄，绿** 三种颜色之一给每一个格子上色，且确保相邻格子颜色不同（也就是有相同水平边或者垂直边的格子颜色不同）。
+
+给你网格图的行数 `n` 。
+
+请你返回给 `grid` 涂色的方案数。由于答案可能会非常大，请你返回答案对 `10^9 + 7` 取余的结果。
+
+> **示例 1：**
+
+```
+输入：n = 1
+输出：12
+解释：总共有 12 种可行的方法：
+```
+
+<img src="_img/5383.png" style="zoom:40%"/>
+
+> **示例 2：**
+
+```
+输入：n = 2
+输出：54
+```
+
+> **示例 3：**
+
+```
+输入：n = 3
+输出：246
+```
+
+> **示例 4：**
+
+```
+输入：n = 7
+输出：106494
+```
+
+> **示例 5：**
+
+```
+输入：n = 5000
+输出：30228214
+```
+
+**提示：**
+
+- `n == grid.length`
+- `grid[i].length == 3`
+- `1 <= n <= 5000`
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/number-of-ways-to-paint-n-x-3-grid/>
+
+#### **思路:**
+
+　　**方法一：**递归搜索，按从上到下，从左到右的顺序搜索，填充和相邻格子不同的颜色并计数。（超时）  
+
+　　**方法二：**状态压缩dp，将一行看成是一个整体，共有`12`种可能的状态，下一行的状态和上一行的状态不冲突即可。记录每种状态的种数，统计总数即可。  
+
+#### **代码:**
+
+　　**方法一：**递归搜索（超时）
+
+```python
+sys.setrecursionlimit(1000000000)
+def numOfWays(n: int) -> int:
+    mem = [[0 for _ in range(3)] for _ in range(n)]  # n * 3
+
+    ans = 0
+
+    def dfs(i, j):
+        nonlocal ans
+
+        if i < 0 or j < 0 or i >= n or j >= 3:
+            return
+
+        # 下一个位置
+        if j < 2:
+            x, y = i, j + 1
+        else:
+            x, y = i + 1, 0
+
+        for color in range(1, 4):
+            if i > 0 and mem[i - 1][j] == color:
+                continue
+            if j > 0 and mem[i][j - 1] == color:
+                continue
+            if i < n - 1 and mem[i + 1][j] == color:
+                continue
+            if j < 2 and mem[i][j + 1] == color:
+                continue
+
+            mem[i][j] = color
+            if i == n - 1 and j == 2:
+                ans += 1
+                # print(mem)
+            dfs(x, y)
+            mem[i][j] = 0
+
+    dfs(0, 0)
+    return ans
+
+```
+
+　　**方法二：**状态压缩dp
+
+```python
+class Solution:
+    def numOfWays(self, n: int) -> int:
+        state = ['010', '012', '020', '021', '101', '102', '120', '121','201', '202', '210','212']
+
+        dp = [[0 for _ in range(27)] for _ in range(n)]  # n * 12
+        for i in range(12):
+            dp[0][int(state[i], 3)] = 1
+
+        for i in range(1, n):
+            for s1 in state:
+                for s2 in state:
+                    for k in range(3):
+                        if s1[k] == s2[k]:
+                            break
+                    else:
+                        dp[i][int(s2 ,3)] += dp[i-1][int(s1, 3)]
+
+
+        return sum(dp[-1]) %1000000007
+```
+
+## A1416. 恢复数组
+
+难度`困难`
+
+#### 题目描述
+
+某个程序本来应该输出一个整数数组。但是这个程序忘记输出空格了以致输出了一个数字字符串，我们所知道的信息只有：数组中所有整数都在 `[1, k]` 之间，且数组中的数字都没有前导 0 。
+
+给你字符串 `s` 和整数 `k` 。可能会有多种不同的数组恢复结果。
+
+按照上述程序，请你返回所有可能输出字符串 `s` 的数组方案数。
+
+由于数组方案数可能会很大，请你返回它对 `10^9 + 7` **取余** 后的结果。
+
+> **示例 1：**
+
+```
+输入：s = "1000", k = 10000
+输出：1
+解释：唯一一种可能的数组方案是 [1000]
+```
+
+> **示例 2：**
+
+```
+输入：s = "1000", k = 10
+输出：0
+解释：不存在任何数组方案满足所有整数都 >= 1 且 <= 10 同时输出结果为 s 。
+```
+
+> **示例 3：**
+
+```
+输入：s = "1317", k = 2000
+输出：8
+解释：可行的数组方案为 [1317]，[131,7]，[13,17]，[1,317]，[13,1,7]，[1,31,7]，[1,3,17]，[1,3,1,7]
+```
+
+> **示例 4：**
+
+```
+输入：s = "2020", k = 30
+输出：1
+解释：唯一可能的数组方案是 [20,20] 。 [2020] 不是可行的数组方案，原因是 2020 > 30 。 [2,020] 也不是可行的数组方案，因为 020 含有前导 0 。
+```
+
+> **示例 5：**
+
+```
+输入：s = "1234567890", k = 90
+输出：34
+```
+
+**提示：**
+
+- `1 <= s.length <= 10^5`.
+- `s` 只包含数字且不包含前导 0 。
+- `1 <= k <= 10^9`.
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/restore-the-array/>
+
+#### **思路:**
+
+　　动态规划。`dp[i]`表示`s[:i]`的分割种数。为了方便令`dp[0] = 1`。    
+
+　　转移方程`dp[i] = sum(dp[0:i])`，注意把前导`0`和大于`k`的情况排除一下。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def numberOfArrays(self, s: str, k: int) -> int:
+        lk = len(str(k))
+        n = len(s)
+        dp = [0] * (n + 1)  # dp[i] 在i之前的位置加，
+        dp[0] = 1  # 不split是一种
+        for i in range(1, n + 1):
+            if i < n and s[i] == '0':
+                continue
+
+            for j in range(i - 1, -1, -1):
+                if int(s[j:i]) <= k:
+                    dp[i] += dp[j] % 1000000007
+                else:
+                    break
+
+        return dp[-1] % 1000000007
+
+```
+
+## A1420. 生成数组
+
+难度`困难`
+
+#### 题目描述
+
+给你三个整数 `n`、`m` 和 `k` 。下图描述的算法用于找出正整数数组中最大的元素。
+
+<img src="_img/5391.png" style="zoom:100%"/>  
+
+请你生成一个具有下述属性的数组 `arr` ：
+
+- `arr` 中有 `n` 个整数。
+- `1 <= arr[i] <= m` 其中 `(0 <= i < n)` 。
+- 将上面提到的算法应用于 `arr` ，`search_cost` 的值等于 `k` 。
+
+返回上述条件下生成数组 `arr` 的 **方法数** ，由于答案可能会很大，所以 **必须** 对 `10^9 + 7` 取余。
+
+> **示例 1：**
+
+```
+输入：n = 2, m = 3, k = 1
+输出：6
+解释：可能的数组分别为 [1, 1], [2, 1], [2, 2], [3, 1], [3, 2] [3, 3]
+```
+
+> **示例 2：**
+
+```
+输入：n = 5, m = 2, k = 3
+输出：0
+解释：没有数组可以满足上述条件
+```
+
+> **示例 3：**
+
+```
+输入：n = 9, m = 1, k = 1
+输出：1
+解释：可能的数组只有 [1, 1, 1, 1, 1, 1, 1, 1, 1]
+```
+
+> **示例 4：**
+
+```
+输入：n = 50, m = 100, k = 25
+输出：34549172
+解释：不要忘了对 1000000007 取余
+```
+
+> **示例 5：**
+
+```
+输入：n = 37, m = 17, k = 7
+输出：418930126
+```
+
+**提示：**
+
+- `1 <= n <= 50`
+- `1 <= m <= 100`
+- `0 <= k <= n`
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/build-array-where-you-can-find-the-maximum-exactly-k-comparisons/>
+
+#### **思路:**
+
+　　这道题中`search_cost`的更新规则为，如果`arr[i] > arr[i-1]`，则`search_cost+1`。  
+
+　　所以这题也就是求**恰好有（k-1）个数大于它前面的最大值**的`arr`的种类数。  
+
+　　令`dp[i][j][kk]`表示`arr[:i]`最大元素为`j`且`search_cost = kk`能表示的种数。  
+
+　　假设当前数组最大的元素为`j`，如果增加一个元素，而保持`k`保持不变的话，增加的新的元素不能超过`j`，也就是取值范围`[1, j]`，共有`j`种可能。这一部分表示为`dp[i - 1][j][kk] * j`。  
+
+　　如果增加一个元素，会使得`kk+1`，那么增加的元素一定是最大的`j`，这一部分共有sum(`dp[i - 1][1: j][kk-1]`)种可能性。  
+
+　　因此递推公式`dp[i][j][kk] = dp[i - 1][j][kk] * j +sum(dp[i - 1][1: j][kk-1])`。
+
+#### **代码:**
+
+```python
+class Solution:
+    def numOfArrays(self, n: int, m: int, k: int) -> int:
+        dp = [[[0 for _ in range(k + 1)] for _ in range(m + 1)] for _ in range(n)]
+        for j in range(1, m + 1):
+            dp[0][j][1] = 1
+
+        for i in range(1, n):
+            for kk in range(1, k + 1):           
+                acc = 0
+                for j in range(1, m + 1):
+                    dp[i][j][kk] = dp[i - 1][j][kk] * j + acc
+                    acc += dp[i - 1][j][kk - 1]
+
+        ans = 0
+        for line in dp[n - 1]:
+            ans += line[k]
+        return ans % 1000000007
+
+```
+

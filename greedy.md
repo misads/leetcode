@@ -891,3 +891,195 @@ class Solution:
         return ans
 
 ```
+
+## A621. 任务调度器
+
+难度`中等`
+
+#### 题目描述
+
+给定一个用字符数组表示的 CPU 需要执行的任务列表。其中包含使用大写的 A - Z 字母表示的26 种不同种类的任务。任务可以以任意顺序执行，并且每个任务都可以在 1 个单位时间内执行完。CPU 在任何一个单位时间内都可以执行一个任务，或者在待命状态。
+
+然而，两个**相同种类**的任务之间必须有长度为 **n** 的冷却时间，因此至少有连续 n 个单位时间内 CPU 在执行不同的任务，或者在待命状态。
+
+你需要计算完成所有任务所需要的**最短时间**。
+
+> **示例 ：**
+
+```
+输入：tasks = ["A","A","A","B","B","B"], n = 2
+输出：8
+解释：A -> B -> (待命) -> A -> B -> (待命) -> A -> B.
+```
+
+**提示：**
+
+1. 任务的总个数为 `[1, 10000]`。
+2. `n` 的取值范围为 `[0, 100]`。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/task-scheduler/>
+
+#### **思路:**
+
+　　**方法一：**模拟所有任务的执行，每次都执行当前能执行的数量最多的任务。  
+
+　　**方法二：** 只考虑最多的任务情况，假设最多的任务出现了`x`次，则这个任务必须有`(x-1) * (n+1)`的间隔时间；如果最多的任务同时有`a`项，那么总的时间为`(x-1) * (n+1) + a`。  
+
+　　除了最多的任务以外，其他的任务不用担心冷却的问题，但是可能数量过多而需要额外的时间，因此最终需要的时间为`max((x-1) * (n+1) + a, len(tasks))`。  
+
+#### **代码:**
+
+　　**方法一：**模拟所有任务的执行(1676ms)
+
+```python
+from collections import Counter
+import bisect
+
+class Solution:
+    def leastInterval(self, tasks: List[str], n: int) -> int:
+        # 每次都执行最多的任务
+        c = Counter(tasks)
+        asc = []
+        ans = 0
+        lasts = {}  # 最后一次执行的时间
+        for k in c:
+            bisect.insort(asc, (c[k], k))
+            lasts[k] = -999
+
+        while asc:
+            ans += 1
+            for i in range(len(asc)-1,-1,-1):  # 从后往前
+                times, char = asc[i]
+                if ans - lasts[char] > n:
+                    asc.pop(i)
+                    times -= 1
+                    if times:
+                        bisect.insort(asc, (times, char))
+                    lasts[char] = ans
+                    break
+        
+        return ans
+
+```
+
+　　**方法二：**只考虑次数最多的任务(48ms)
+
+```python
+from collections import Counter
+import bisect
+
+class Solution:
+    def leastInterval(self, tasks: List[str], n: int) -> int:
+        c = Counter(tasks)
+        ans = 0
+        x = max(c.values())
+        ans = (x - 1) * (n + 1)
+
+        ans += list(c.values()).count(x)
+        
+        return max(ans, len(tasks))
+        
+```
+
+## A630. 课程表 III
+
+难度`困难`
+
+#### 题目描述
+
+这里有 `n` 门不同的在线课程，他们按从 `1` 到 `n` 编号。每一门课程有一定的持续上课时间（课程时间）`t` 以及关闭时间第 d 天。一门课要持续学习 `t` 天直到第 d 天时要完成，你将会从第 1 天开始。
+
+给出 `n` 个在线课程用 `(t, d)` 对表示。你的任务是找出最多可以修几门课。
+
+> **示例：**
+
+```
+输入: [[100, 200], [200, 1300], [1000, 1250], [2000, 3200]]
+输出: 3
+解释: 
+这里一共有 4 门课程, 但是你最多可以修 3 门:
+首先, 修第一门课时, 它要耗费 100 天，你会在第 100 天完成, 在第 101 天准备下门课。
+第二, 修第三门课时, 它会耗费 1000 天，所以你将在第 1100 天的时候完成它, 以及在第 1101 天开始准备下门课程。
+第三, 修第二门课时, 它会耗时 200 天，所以你将会在第 1300 天时完成它。
+第四门课现在不能修，因为你将会在第 3300 天完成它，这已经超出了关闭日期。
+```
+
+**提示:**
+
+1. 整数 1 <= d, t, n <= 10,000 。
+2. 你不能同时修两门课程。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/course-schedule-iii/>
+
+#### **思路:**
+
+　　贪心算法。首先解释一下这题为什么能用贪心算法：    
+
+　　**性质一：**如果一门课程`b`的结束时间比`a`晚，而学习时间比`a`短，那么一定可以用课程`b`**替换掉**课程`a`课程。  
+
+　　基于以上前提，我们先把所有课程按照**结束时间**排序。然后依次学习每门课程，如果某门课程无法在结束前学完，可以尝试替换掉之前耗时最长的课程。如果替换成功，可以把当前时间提前到`time = time + cost - longest_cost `(这样就留出更过的时间学习新的课程了)。  
+
+　　具体实现上，可以用升序数组(`bisect`库)，也可以用大顶堆(`heapq`库)。  
+
+#### **代码:**
+
+　　**实现一：**bisect
+
+```python
+import bisect
+
+class Solution:
+    def scheduleCourse(self, courses: List[List[int]]) -> int:
+        courses.sort(key= lambda kv:kv[1])
+        chosen = []
+
+        ans = 0
+        time = 0
+        for i in range(len(courses)):
+            cost, end = courses[i]
+            if time + cost <= end:
+                bisect.insort(chosen, cost)
+                time += cost
+                ans += 1
+            elif chosen:
+                longest_cost = chosen[-1] 
+                if cost < longest_cost:
+                    chosen.pop()
+                    bisect.insort(chosen, cost)
+                    time = time + cost - longest_cost
+
+        return ans
+
+```
+
+　　**实现二：**heap
+
+```python
+class Solution:
+    def scheduleCourse(self, courses: List[List[int]]) -> int:
+        courses.sort(key= lambda kv:kv[1])
+        chosen = []
+
+        ans = 0
+        time = 0
+        for i in range(len(courses)):
+            cost, end = courses[i]
+            if time + cost <= end:
+                heapq.heappush(chosen, -cost)
+                time += cost
+                ans += 1
+            elif chosen:
+                longest_cost = - chosen[0] 
+                if cost < longest_cost:
+                    heapq.heappop(chosen)
+                    heapq.heappush(chosen, -cost)
+                    time = time + cost - longest_cost
+
+        return ans
+
+```
+

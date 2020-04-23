@@ -1268,5 +1268,217 @@ class Solution:
       
 ```
 
+#### [1283. 使结果不超过阈值的最小除数](https://leetcode-cn.com/problems/find-the-smallest-divisor-given-a-threshold/)
+
+难度中等16收藏分享切换为英文关注反馈
+
+给你一个整数数组 `nums` 和一个正整数 `threshold`  ，你需要选择一个正整数作为除数，然后将数组里每个数都除以它，并对除法结果求和。
+
+请你找出能够使上述结果小于等于阈值 `threshold` 的除数中 **最小** 的那个。
+
+每个数除以除数后都向上取整，比方说 7/3 = 3 ， 10/2 = 5 。
+
+题目保证一定有解。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,2,5,9], threshold = 6
+输出：5
+解释：如果除数为 1 ，我们可以得到和为 17 （1+2+5+9）。
+如果除数为 4 ，我们可以得到和为 7 (1+1+2+3) 。如果除数为 5 ，和为 5 (1+1+1+2)。
+```
+
+**示例 2：**
+
+```
+输入：nums = [2,3,5,7,11], threshold = 11
+输出：3
+```
+
+**示例 3：**
+
+```
+输入：nums = [19], threshold = 5
+输出：4
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 5 * 10^4`
+- `1 <= nums[i] <= 10^6`
+- `nums.length <= threshold <= 10^6`
+
+## A1283. 使结果不超过阈值的最小除数
+
+难度`中等`
+
+#### 题目描述
+
+给你一个整数数组 `nums` 和一个正整数 `threshold`  ，你需要选择一个正整数作为除数，然后将数组里每个数都除以它，并对除法结果求和。
+
+请你找出能够使上述结果小于等于阈值 `threshold` 的除数中 **最小** 的那个。
+
+每个数除以除数后都向上取整，比方说 7/3 = 3 ， 10/2 = 5 。
+
+题目保证一定有解。
+
+> **示例 1：**
+
+```
+输入：nums = [1,2,5,9], threshold = 6
+输出：5
+解释：如果除数为 1 ，我们可以得到和为 17 （1+2+5+9）。
+如果除数为 4 ，我们可以得到和为 7 (1+1+2+3) 。如果除数为 5 ，和为 5 (1+1+1+2)。
+```
+
+> **示例 2：**
+
+```
+输入：nums = [2,3,5,7,11], threshold = 11
+输出：3
+```
+
+> **示例 3：**
+
+```
+输入：nums = [19], threshold = 5
+输出：4
+```
+
+**提示：**
+
+- `1 <= nums.length <= 5 * 10^4`
+- `1 <= nums[i] <= 10^6`
+- `nums.length <= threshold <= 10^6`
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/find-the-smallest-divisor-given-a-threshold/>
+
+#### **思路:**
+
+　　使用二分法在`1`到`max(nums)`的范围内搜索被除数。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def smallestDivisor(self, nums: List[int], threshold: int) -> int:
+        def get_divider(divider):
+            sum = 0
+            for num in nums:
+                sum = sum + num // divider if num % divider == 0 else sum + num // divider + 1
+                
+            return sum
+        
+        # 范围 1~max(nums)
+        maximal = max(nums)
+        i, j = 1, maximal
+        
+        while i <= j and i < maximal:
+            mid = (i + j) // 2
+            
+            if get_divider(mid) > threshold:  
+                if mid == maximal or get_divider(mid+1) <= threshold:
+                    return mid+1
+                
+                i = mid + 1  # 要往大了搜
+            else:
+                j = mid - 1
+                
+        return mid
+
+```
+
+## ALCP 08. 剧情触发时间
+
+难度`中等`
+
+#### 题目描述
+
+在战略游戏中，玩家往往需要发展自己的势力来触发各种新的剧情。一个势力的主要属性有三种，分别是文明等级（`C`），资源储备（`R`）以及人口数量（`H`）。在游戏开始时（第 0 天），三种属性的值均为 0。
+
+随着游戏进程的进行，每一天玩家的三种属性都会对应**增加**，我们用一个二维数组 `increase` 来表示每天的增加情况。这个二维数组的每个元素是一个长度为 3 的一维数组，例如 `[[1,2,1],[3,4,2]]` 表示第一天三种属性分别增加 `1,2,1` 而第二天分别增加 `3,4,2`。
+
+所有剧情的触发条件也用一个二维数组 `requirements` 表示。这个二维数组的每个元素是一个长度为 3 的一维数组，对于某个剧情的触发条件 `c[i], r[i], h[i]`，如果当前 `C >= c[i]` 且 `R >= r[i]` 且 `H >= h[i]` ，则剧情会被触发。
+
+根据所给信息，请计算每个剧情的触发时间，并以一个数组返回。如果某个剧情不会被触发，则该剧情对应的触发时间为 -1 。
+
+> **示例 1：**
+
+```
+输入： `increase = [[2,8,4],[2,5,0],[10,9,8]]requirements = [[2,11,3],[15,10,7],[9,17,12],[8,1,14]]`
+
+输出: `[2,-1,3,-1]`
+
+解释：
+初始时，C = 0，R = 0，H = 0
+第 1 天，C = 2，R = 8，H = 4
+第 2 天，C = 4，R = 13，H = 4，此时触发剧情 0
+第 3 天，C = 14，R = 22，H = 12，此时触发剧情 2
+剧情 1 和 3 无法触发。
+```
+
+> **示例 2：**
+
+```
+输入： `increase = [[0,4,5],[4,8,8],[8,6,1],[10,10,0]]` `requirements = [[12,11,16],[20,2,6],[9,2,6],[10,18,3],[8,14,9]]`
+
+输出: `[-1,4,3,3,3]`
+
+示例 3：
+输入： `increase = [[1,1,1]]` `requirements = [[0,0,0]]`
+输出: `[0]`
+```
+
+**限制：**
+
+- `1 <= increase.length <= 10000`
+- `1 <= requirements.length <= 100000`
+- `0 <= increase[i] <= 10`
+- `0 <= requirements[i] <= 100000`
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/ju-qing-hong-fa-shi-jian/>
+
+#### **思路:**
+
+　　这题因为`requirements`的数据量较大，而`increase`的数据量较小，所以要反过来处理。先用`increase`得到每天的三种属性，然后分别在中间二分查找就可以找到每个需求在哪天可以达成。  
+
+#### **代码:**
+
+```python
+import bisect
+
+class Solution:
+    def getTriggerTime(self, increase: List[List[int]], requirements: List[List[int]]) -> List[int]:
+        mem = {}
+        enough = {}
+        n = len(increase)
+        a, b, c = [0 for _ in range(n+1)], [0 for _ in range(n+1)], [0 for _ in range(n+1)]
+        for i, (da, db, dc) in enumerate(increase): 
+            a[i+1] = a[i] + da
+            b[i+1] = b[i] + db
+            c[i+1] = c[i] + dc
+            
+        ans = []
+        for x,y,z in requirements:
+            ida = bisect.bisect_left(a, x)
+            idb = bisect.bisect_left(b, y)
+            idc = bisect.bisect_left(c, z)
+            day = max(ida, idb, idc)
+            if day == n+1: day = -1
+            ans.append(day)
+            
+        return ans
+
+```
+
 
 

@@ -1,5 +1,60 @@
 # 树🌲
 
+## A94. 二叉树的中序遍历
+
+难度`中等`
+
+#### 题目描述
+
+给定一个二叉树，返回它的*中序* 遍历。
+
+> **示例:**
+
+```
+输入: [1,null,2,3]
+   1
+    \
+     2
+    /
+   3
+
+输出: [1,3,2]
+```
+
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/binary-tree-inorder-traversal/>
+
+#### **思路:**
+
+
+　　中序遍历是`先左中根后右`的遍历方法，这里给出一个非递归的写法。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def inorderTraversal(self, root: TreeNode) -> List[int]:
+        # 左根右
+        if not root:
+            return []
+
+        stack = []
+        ans = []
+        while stack or root:
+            while root:
+                stack.append(root)
+                root = root.left
+            
+            root = stack.pop()
+            ans.append(root.val)
+            root = root.right
+
+        return ans
+
+```
+
 ## A98. 验证二叉搜索树
 
 难度`中等`
@@ -458,6 +513,73 @@ class Solution:
         ans.left = left
         ans.right = right
         return ans
+```
+
+## A106. 从中序与后序遍历序列构造二叉树
+
+难度`中等`
+
+#### 题目描述
+
+根据一棵树的中序遍历与后序遍历构造二叉树。
+
+**注意:**
+你可以假设树中没有重复的元素。
+
+例如，给出
+
+```
+中序遍历 inorder = [9,3,15,20,7]
+后序遍历 postorder = [9,15,7,20,3]
+```
+
+返回如下的二叉树：
+
+```
+    3
+   / \
+  9  20
+    /  \
+   15   7
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/>
+
+#### **思路:**
+
+　　后序遍历中的**最后一个**结点一定为根结点，在中序遍历中找到这个结点。它之前的所有元素表示左子树的中序遍历，在前序遍历中取相同长度则为左子树的前序遍历。  
+
+　　根据左子树的前序和中序遍历构建左子树，右子树同理。  　　
+
+#### **代码:**
+
+```python
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.left = None
+#         self.right = None
+
+class Solution:
+    def buildTree(self, inorder: List[int], postorder: List[int]) -> TreeNode:
+        if not inorder:
+            return None
+
+        root = postorder[-1]
+        idx = inorder.index(root)
+        ans = TreeNode(root)
+
+        left = self.buildTree(inorder[:idx], postorder[:idx])
+        right = self.buildTree(inorder[idx+1:], postorder[idx:-1])
+
+        ans.left = left
+        ans.right = right
+
+        return ans
+
 ```
 
 ## A108. 将有序数组转换为二叉搜索树
