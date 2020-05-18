@@ -219,6 +219,69 @@ class Solution:
       
 ```
 
+## A143. 重排链表
+
+难度`中等`
+
+#### 题目描述
+
+给定一个单链表 *L*：*L*0→*L*1→…→*Ln*-1→*L*n ，
+将其重新排列后变为： *L*0→*Ln*→*L*1→*Ln*-1→*L*2→*Ln*-2→…
+
+你不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。
+
+> **示例 1:**
+
+```
+给定链表 1->2->3->4, 重新排列为 1->4->2->3.
+```
+
+> **示例 2:**
+
+```
+给定链表 1->2->3->4->5, 重新排列为 1->5->2->4->3.
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/reorder-list/>
+
+#### **思路:**
+
+　　先用快慢指针找到链表的中点。然后逆序后半部分，最后合并前后两个链表。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def reorderList(self, head: ListNode) -> None:
+        """
+        Do not return anything, modify head in-place instead.
+        """
+        if not head:
+            return
+        fast = slow = head
+        while fast.next and fast.next.next:
+            slow = slow.next
+            fast = fast.next.next
+
+        list1 = head
+        list2 = slow.next
+        slow.next = None
+        rever = None
+        while list2:
+            list2.next, rever, list2,  = rever, list2, list2.next
+
+        list2 = rever
+        while list1 and list2:
+            n1 = list1.next
+            n2 = list2.next if list2 else None
+            list1.next, list2.next = list2, list1.next
+            list1 = n1
+            list2 = n2
+
+```
+
 ## A147. 对链表进行插入排序
 
 难度`中等`

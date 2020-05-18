@@ -8,7 +8,7 @@
 
 城市的天际线是从远处观看该城市中所有建筑物形成的轮廓的外部轮廓。现在，假设您获得了城市风光照片（图A）上**显示的所有建筑物的位置和高度**，请编写一个程序以输出由这些建筑物**形成的天际线**（图B）。
 
-<img src="_img/218_1.png" style="zoom:40%"/> <<img src="_img/218_2.png" style="zoom:40%"/> >
+<img src="_img/218_1.png" style="zoom:40%"/> <img src="_img/218_2.png" style="zoom:40%"/> 
 
 每个建筑物的几何信息用三元组 `[Li，Ri，Hi]` 表示，其中 `Li` 和 `Ri` 分别是第 i 座建筑物左右边缘的 x 坐标，`Hi` 是其高度。可以保证 `0 ≤ Li, Ri ≤ INT_MAX`, `0 < Hi ≤ INT_MAX` 和 `Ri - Li > 0`。您可以假设所有建筑物都是在绝对平坦且高度为 0 的表面上的完美矩形。
 
@@ -179,6 +179,61 @@ class Solution:
         return result[-1]
 ```
 
+## A313. 超级丑数
+
+难度`中等`
+
+#### 题目描述
+
+编写一段程序来查找第 `*n*` 个超级丑数。
+
+超级丑数是指其所有质因数都是长度为 `k` 的质数列表 `primes` 中的正整数。
+
+> **示例:**
+
+```
+输入: n = 12, primes = [2,7,13,19]
+输出: 32 
+解释: 给定长度为 4 的质数列表 primes = [2,7,13,19]，前 12 个超级丑数序列为：[1,2,4,7,8,13,14,16,19,26,28,32] 。
+```
+
+**说明:**
+
+- `1` 是任何给定 `primes` 的超级丑数。
+- 给定 `primes` 中的数字以升序排列。
+- 0 < `k` ≤ 100, 0 < `n` ≤ 106, 0 < `primes[i]` < 1000 。
+- 第 `n` 个超级丑数确保在 32 位有符整数范围内。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/super-ugly-number/>
+
+#### **思路:**
+
+　　最小堆。每次取出最小的元素，乘以所有的素数然后放回堆中。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def nthSuperUglyNumber(self, n: int, primes: List[int]) -> int:
+        heap = primes.copy()
+        shown = set(heap)
+        heapify(heap)
+        ans = 1
+        for _ in range(n-1):
+            ans = top = heappop(heap)
+            shown.remove(top)
+            for prime in primes:
+                c = top * prime
+                if c not in shown:
+                    shown.add(c)
+                    heappush(heap, c)
+
+        return ans
+
+```
+
 ## A502. IPO
 
 难度`困难`
@@ -325,4 +380,88 @@ class Solution:
 
         return ans
 ```
+
+## A1425. 带限制的子序列和
+
+难度`困难`
+
+#### 题目描述
+
+给你一个整数数组 `nums` 和一个整数 `k` ，请你返回 **非空** 子序列元素和的最大值，子序列需要满足：子序列中每两个 **相邻** 的整数 `nums[i]` 和 `nums[j]` ，它们在原数组中的下标 `i` 和 `j` 满足 `i < j` 且 `j - i <= k` 。
+
+数组的子序列定义为：将数组中的若干个数字删除（可以删除 0 个数字），剩下的数字按照原本的顺序排布。
+
+> **示例 1：**
+
+```
+输入：nums = [10,2,-10,5,20], k = 2
+输出：37
+解释：子序列为 [10, 2, 5, 20] 。
+```
+
+> **示例 2：**
+
+```
+输入：nums = [-1,-2,-3], k = 1
+输出：-1
+解释：子序列必须是非空的，所以我们选择最大的数字。
+```
+
+> **示例 3：**
+
+```
+输入：nums = [10,-2,-10,-5,20], k = 2
+输出：23
+解释：子序列为 [10, -2, -5, 20] 。
+```
+
+**提示：**
+
+- `1 <= k <= nums.length <= 10^5`
+- `-10^4 <= nums[i] <= 10^4`
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/constrained-subset-sum/>
+
+#### **思路:**
+
+　　动态规划。令`dp[i]`表示选择下标为`i`的元素时能选择的最大子序和，因为选择的两个元素下标之差不能大于`k`，因此有状态转移方程`dp[i] = max(0, max(dp[i-k: i])) + nums[i]`。  
+
+　　由于题目的范围较大，不能暴力计算`max(dp[i-k: i])`，因此使用一个**最大堆**来保存`dp[i-k: i]`的最大值。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def constrainedSubsetSum(self, nums: List[int], k: int) -> int:
+        n = len(nums)
+        dp = [0] * n
+        heap = []
+        ans = nums[0]
+        for i in range(n):
+            num = nums[i]
+            
+            dp_j = float('inf')
+            while heap:
+                dp_j, j = heapq.heappop(heap)
+                if j >= i - k:
+                    heapq.heappush(heap, (dp_j, j))  # 放回去
+                    break
+            
+            dp[i] = max(0, -dp_j) + num
+            print(i, dp[i])
+            
+            if dp[i] > 0:
+                heapq.heappush(heap, (-dp[i], i))
+            
+            ans = max(ans, dp[i])
+       
+        return(ans)
+
+```
+
+
+
+
 

@@ -2,3 +2,5 @@
 */.DS_Store
 */*/.DS_Store
 _manim/
+census.py
+find.py

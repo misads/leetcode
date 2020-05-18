@@ -167,6 +167,88 @@ class Solution:
 
 ```
 
+## A150. 逆波兰表达式求值
+
+难度`中等`
+
+#### 题目描述
+
+根据[逆波兰表示法](https://baike.baidu.com/item/逆波兰式/128437)，求表达式的值。
+
+有效的运算符包括 `+`, `-`, `*`, `/` 。每个运算对象可以是整数，也可以是另一个逆波兰表达式。
+
+**说明：**
+
+- 整数除法只保留整数部分。
+- 给定逆波兰表达式总是有效的。换句话说，表达式总会得出有效数值且不存在除数为 0 的情况。
+
+> **示例 1：**
+
+```
+输入: ["2", "1", "+", "3", "*"]
+输出: 9
+解释: ((2 + 1) * 3) = 9
+```
+
+> **示例 2：**
+
+```
+输入: ["4", "13", "5", "/", "+"]
+输出: 6
+解释: (4 + (13 / 5)) = 6
+```
+
+> **示例 3：**
+
+```
+输入: ["10", "6", "9", "3", "+", "-11", "*", "/", "*", "17", "+", "5", "+"]
+输出: 22
+解释: 
+  ((10 * (6 / ((9 + 3) * -11))) + 17) + 5
+= ((10 * (6 / (12 * -11))) + 17) + 5
+= ((10 * (6 / -132)) + 17) + 5
+= ((10 * 0) + 17) + 5
+= (0 + 17) + 5
+= 17 + 5
+= 22
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/evaluate-reverse-polish-notation/>
+
+#### **思路:**
+
+　　维护一个`数据栈`和一个`符号栈`，遇到数值时入数据栈，遇到符号时从数据栈出栈2个元素`num2`和`num1`，将`num1`和`num2`按符号运算后的结果再入数据栈。最后数据栈中只剩下唯一的一个元素就是结果。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def evalRPN(self, tokens: List[str]) -> int:
+        def op(num1, num2, sign):
+            if sign == '+': return num1 + num2
+            if sign == '-': return num1 - num2
+            if sign == '*': return num1 * num2
+            if sign == '/': return int(num1 / num2)
+
+        nums = []
+        signs = []
+        for token in tokens:
+            try:
+                nums.append(int(token))  # 数值
+            except:
+                num2 = nums.pop()
+                num1 = nums.pop()
+                num = op(num1, num2, token)
+                # print(num1, token, num2, '=', num)
+                nums.append(num)
+
+        # print(nums)
+        return nums[0]
+
+```
+
 ## A224. 基本计算器
 
 难度`困难`

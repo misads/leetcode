@@ -280,7 +280,7 @@ class Solution:
 
 > **示例：**
 
-<img src="/_img/743.png" style="zoom:100%"/>
+<img src="_img/743.png" style="zoom:100%"/>
 
 ```
 输入：times = [[2,1,1],[2,3,1],[3,4,1]], N = 4, K = 2

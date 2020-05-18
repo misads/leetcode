@@ -1,5 +1,86 @@
 # Trie树(前缀树)
 
+## A208. 实现 Trie 
+
+难度`中等`
+
+#### 题目描述
+
+实现一个 Trie (前缀树)，包含 `insert`, `search`, 和 `startsWith` 这三个操作。
+
+> **示例:**
+
+```
+Trie trie = new Trie();
+
+trie.insert("apple");
+trie.search("apple");   // 返回 true
+trie.search("app");     // 返回 false
+trie.startsWith("app"); // 返回 true
+trie.insert("app");   
+trie.search("app");     // 返回 true
+```
+
+**说明:**
+
+- 你可以假设所有的输入都是由小写字母 `a-z` 构成的。
+- 保证所有输入均为非空字符串。
+
+#### 题目链接
+
+<前缀树https://leetcode-cn.com/problems/implement-trie-prefix-tree/>
+
+#### **思路:**
+
+　　Trie树的模板。
+
+#### **代码:**
+
+```python
+class Trie:
+
+    def __init__(self):
+        """
+        Initialize your data structure here.
+        """
+        self.trie = {}
+
+
+    def insert(self, word: str) -> None:
+        """
+        Inserts a word into the trie.
+        """
+        node = self.trie
+        for char in word:
+            node = node.setdefault(char, {})
+        node['#'] = True
+
+    def search(self, word: str) -> bool:
+        """
+        Returns if the word is in the trie.
+        """
+        tmp = self.trie
+        for char in word:
+            if char not in tmp:
+                return False
+            tmp = tmp[char]
+        # print(tmp)
+        return '#' in tmp
+
+
+    def startsWith(self, prefix: str) -> bool:
+        """
+        Returns if there is any word in the trie that starts with the given prefix.
+        """
+        tmp = self.trie
+        for char in prefix:
+            if char not in tmp:
+                return False
+            tmp = tmp[char]
+        return True
+
+```
+
 ## A211. 添加与搜索单词 - 数据结构设计
 
 难度`中等`

@@ -1498,7 +1498,7 @@ class Solution:
 
 　　对于任意一个结点`node`，只有两种状态，要么偷，要么不偷，分别计算这这种情况的最大值即可。  
 
-<img src="/_img/a337.png" style="zoom:50%"/>
+<img src="_img/a337.png" style="zoom:50%"/>
 
 　　如果偷结点`node`，就不能偷`node`的子结点，最大值为`not_rob_left`+`not_rob_right`+`node.val`。  
 
@@ -1655,6 +1655,125 @@ class Solution:
 
 ```
 
+## A144. 二叉树的前序遍历
+
+难度`中等`
+
+#### 题目描述
+
+给定一个二叉树，返回它的 *前序* 遍历。
+
+ **示例:**
+
+```
+输入: [1,null,2,3]  
+   1
+    \
+     2
+    /
+   3 
+
+输出: [1,2,3]
+```
+
+**进阶:** 递归算法很简单，你可以通过迭代算法完成吗？
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/binary-tree-preorder-traversal/>
+
+#### **思路:**
+
+　　用迭代的方法，用一个堆栈维护已访问过的结点，先不断向左遍历，然后再不断向右遍历。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def preorderTraversal(self, root: TreeNode) -> List[int]:
+        if not root:
+            return []
+        ans = []
+        stack = [root]
+        ans.append(root.val)
+
+        while stack:
+            node = stack[-1]
+            if node.left:
+                stack.append(node.left)
+                ans.append(node.left.val)
+                node.left = None
+                continue
+            if node.right:
+                stack.append(node.right)
+                ans.append(node.right.val)
+                node.right = None
+                continue
+
+            stack.pop()
+
+        return ans
+
+```
+
+## A145. 二叉树的后序遍历
+
+难度`困难`
+
+#### 题目描述
+
+给定一个二叉树，返回它的 *后序* 遍历。
+
+> **示例:**
+
+```
+输入: [1,null,2,3]  
+   1
+    \
+     2
+    /
+   3 
+
+输出: [3,2,1]
+```
+
+**进阶:** 递归算法很简单，你可以通过迭代算法完成吗？
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/binary-tree-postorder-traversal/>
+
+#### **思路:**
+
+　　跟上一题一样，只是遍历完左右结点再遍历根结点即可。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def postorderTraversal(self, root: TreeNode) -> List[int]:
+        if not root:
+            return []
+        ans = []
+        stack = [root]
+
+        while stack:
+            node = stack[-1]
+            if node.left:
+                stack.append(node.left)
+                node.left = None
+                continue
+            if node.right:
+                stack.append(node.right)
+                node.right = None
+                continue
+
+            ans.append(stack.pop().val)
+
+        return ans
+
+```
+
 ## A429. N叉树的层序遍历
 
 难度`中等`
@@ -1665,7 +1784,7 @@ class Solution:
 
 例如，给定一个 `3叉树` :
 
-<img src="/_img/429.png" style="zoom:40%"/>
+<img src="_img/429.png" style="zoom:40%"/>
 
  
 

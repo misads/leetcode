@@ -765,6 +765,195 @@ class Solution:
       
 ```
 
+## A1263. 推箱子
+
+难度`困难`
+
+#### 题目描述
+
+「推箱子」是一款风靡全球的益智小游戏，玩家需要将箱子推到仓库中的目标位置。
+
+游戏地图用大小为 `n * m` 的网格 `grid` 表示，其中每个元素可以是墙、地板或者是箱子。
+
+现在你将作为玩家参与游戏，按规则将箱子 `'B'` 移动到目标位置 `'T'` ：
+
+- 玩家用字符 `'S'` 表示，只要他在地板上，就可以在网格中向上、下、左、右四个方向移动。
+- 地板用字符 `'.'` 表示，意味着可以自由行走。
+- 墙用字符 `'#'` 表示，意味着障碍物，不能通行。 
+- 箱子仅有一个，用字符 `'B'` 表示。相应地，网格上有一个目标位置 `'T'`。
+- 玩家需要站在箱子旁边，然后沿着箱子的方向进行移动，此时箱子会被移动到相邻的地板单元格。记作一次「推动」。
+- 玩家无法越过箱子。
+
+返回将箱子推到目标位置的最小 **推动** 次数，如果无法做到，请返回 `-1`。
+
+> **示例 1：**
+
+<img src="_img/1263.png" style="zoom:50%"/>
+
+```
+输入：grid = [["#","#","#","#","#","#"],
+             ["#","T","#","#","#","#"],
+             ["#",".",".","B",".","#"],
+             ["#",".","#","#",".","#"],
+             ["#",".",".",".","S","#"],
+             ["#","#","#","#","#","#"]]
+输出：3
+解释：我们只需要返回推箱子的次数。
+```
+
+> **示例 2：**
+
+```
+输入：grid = [["#","#","#","#","#","#"],
+             ["#","T","#","#","#","#"],
+             ["#",".",".","B",".","#"],
+             ["#","#","#","#",".","#"],
+             ["#",".",".",".","S","#"],
+             ["#","#","#","#","#","#"]]
+输出：-1
+```
+
+> **示例 3：**
+
+```
+输入：grid = [["#","#","#","#","#","#"],
+             ["#","T",".",".","#","#"],
+             ["#",".","#","B",".","#"],
+             ["#",".",".",".",".","#"],
+             ["#",".",".",".","S","#"],
+             ["#","#","#","#","#","#"]]
+输出：5
+解释：向下、向左、向左、向上再向上。
+```
+
+> **示例 4：**
+
+```
+输入：grid = [["#","#","#","#","#","#","#"],
+             ["#","S","#",".","B","T","#"],
+             ["#","#","#","#","#","#","#"]]
+输出：-1
+```
+
+**提示：**
+
+- `1 <= grid.length <= 20`
+- `1 <= grid[i].length <= 20`
+- `grid` 仅包含字符 `'.'`, `'#'`,  `'S'` , `'T'`, 以及 `'B'`。
+- `grid` 中 `'S'`, `'B'` 和 `'T'` 各只能出现一个。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/minimum-moves-to-move-a-box-to-their-target-location/>
+
+#### **思路:**
+
+　　BFS。不过有两种特殊情况需要考虑：  
+
+　　① 人无法到箱子的另一边推箱子，如下图所示：  
+
+```
+["#","#","#","#","#","#"]
+["#","#","#","#","#","#"]
+["#","#",".","B",".","T"]
+["#","#","#","#","S","#"]
+["#","#","#","#","#","#"]
+
+```
+
+　　② 箱子的位置可能出现重复，如下图所示，先向左推，再向右推：
+
+```
+["#","#","#","#","#","#"]
+["#",".",".",".","#","#"]
+["#",".",".","B",".","T"]
+["#",".",".","#","S","#"]
+["#","#","#","#","#","#"]
+
+```
+
+　　因此以`(箱子的位置, 人的位置)`保存`visited`数组，箱子每次可以向上下左右移动，不过需要先判断人能不能移动到箱子相反的位置，判断的方式仍然是BFS。因此这道题实际上是双重BFS。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def minPushBox(self, grid: List[List[str]]) -> int:
+        arounds = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # 上下左右
+        m = len(grid)
+        if not m: return 0
+        n = len(grid[0])
+
+        box_visited = [[[[False for _ in range(n)] for _ in range(m)] for _ in range(n)] for _ in range(m)]
+        
+        def can_goto(src, dst):
+            visited = [[False for _ in range(n)] for _ in range(m)]
+            
+            queue = [src]  # (0, 0)
+            visited[src[0]][src[1]] = True  
+        
+            count = 0
+            while queue:
+                for i, j in queue:
+                    if i == dst[0] and j == dst[1]:
+                        return True  # 结束的条件
+
+                temp = []
+                for i, j in queue:
+                    for di, dj in arounds:
+                        x, y = i + di, j + dj
+                        if x < 0 or y < 0 or x >= m or y >= n or grid[x][y]=='#' or grid[x][y] == 'B':  # 边界
+                            continue
+                        if not visited[x][y]:
+                            visited[x][y] = True
+                            temp.append((x, y))
+
+                queue = temp
+            return False
+        
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j] == 'S':
+                    start = (i, j)
+                elif grid[i][j] == 'B':
+                    box = (i, j)
+                elif grid[i][j] == 'T':
+                    target = (i, j)
+                    
+        queue = [(box[0], box[1], start[0], start[1])]
+        grid[box[0]][box[1]] = '.'
+        
+        count = 0
+        while queue:
+            for i, j, _, _ in queue:
+                if i == target[0] and j == target[1]:
+                    return count # 结束的条件
+
+            count += 1
+
+            temp = []
+            for i, j, per1, per2 in queue:
+                grid[i][j] = '#'
+                for di, dj in arounds:
+                    x, y = i + di, j + dj  # 箱子的下一个位置
+                    if x < 0 or y < 0 or x >= m or y >= n or grid[x][y]=='#':  # 边界
+                        continue
+                    x_, y_ = i - di, j - dj  # 人需要站在的位置
+                    if x_ < 0 or y_ < 0 or x_ >= m or y_ >= n or grid[x][y]=='#':  # 边界
+                        continue
+                    if not can_goto((per1, per2), (x_, y_)):  # 走不到那个位置
+                        continue
+
+                    if not box_visited[x][y][i][j]:  # (箱子的位置，人推完箱子后的位置)
+                        box_visited[x][y][i][j] = True 
+                        temp.append((x, y, i, j))
+
+                grid[i][j] = '.'
+            queue = temp
+                
+        return -1
+```
+
 ## ALCP 09. 最小跳跃次数
 
 难度`困难`

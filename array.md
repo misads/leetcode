@@ -1575,6 +1575,62 @@ class Solution:
 
 ```
 
+## A228. 汇总区间
+
+难度`中等`
+
+#### 题目描述
+
+给定一个无重复元素的有序整数数组，返回数组区间范围的汇总。
+
+> **示例 1:**
+
+```
+输入: [0,1,2,4,5,7]
+输出: ["0->2","4->5","7"]
+解释: 0,1,2 可组成一个连续的区间; 4,5 可组成一个连续的区间。
+```
+
+> **示例 2:**
+
+```
+输入: [0,2,3,4,6,8,9]
+输出: ["0","2->4","6","8->9"]
+解释: 2,3,4 可组成一个连续的区间; 8,9 可组成一个连续的区间。
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/summary-ranges/>
+
+#### **思路:**
+
+　　比较`nums[i]`和`nums[i-1]`，如果它们相差为`1`则可以汇总。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def summaryRanges(self, nums: List[int]) -> List[str]:
+        ans = []
+        if not nums:
+            return []
+        last = nums[0]
+        nums.append(999999999999)
+        for i in range(1, len(nums)):
+            if nums[i] - nums[i-1] == 1:
+                continue
+            else:
+                if last == nums[i-1]:
+                    ans.append(f'{last}')
+                else:
+                    ans.append(f'{last}->{nums[i-1]}')
+                last = nums[i]
+
+        return ans
+
+```
+
 ## A面试题51. 数组中的逆序对
 
 难度`困难`
