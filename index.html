@@ -58,10 +58,17 @@
     <script src="/_src/prism-yaml.js"></script>
     <script src="/_src/prism-cpp.js"></script>
     <script src="/_src/prism-c.js"></script>
-
+    
     <link href="/_src/katex.min.css" rel="stylesheet">
     <script src="/_src/katex.min.js"></script>
-
+    <script>
+        var items = ['希望秋天会有意想不到的惊喜','想和你一起逃往快乐星球','有机会耳机分你一个开启心动模式','拥有愉快生活储存十吨热爱','想做一个只记得快乐和知识点的人','上了生活的贼船就做快乐的海盗','我是一只绵羊，今天，我剪了毛，然后我失棉了','当你看到这句话的时候，是我在明示你点赞呐～','你是不是在我心上撒了一把跳跳糖？','掉头发的时候感觉自己是一株蒲公英', '热爱可抵岁月漫长'
+            , '昼夜偷偷交换一个吻，吻痕叫作月亮', '上学吃外卖真的很不健康 建议大家不要上学', '我举着丘比特的箭追呀追，你穿着防弹背心飞呀飞。', '以后的路你自己走吧 我打车'];
+        var item = items[Math.floor(Math.random()*items.length)];
+        setTimeout('document.getElementById("sentence").innerHTML="' + item + '"', 50)
+    </script>
+    
+    
     <!--<link href="https://cdn.bootcss.com/KaTeX/0.10.0/katex.min.css" rel="stylesheet">-->
 <!--<script src="https://cdn.bootcss.com/KaTeX/0.10.0/katex.min.js"></script>-->
 <!--  <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>-->
