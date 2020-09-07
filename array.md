@@ -411,7 +411,7 @@ class Solution:
                 i = -1
 
         if i == -1:
-            nums[:] = sorted(nums)[:]
+            nums[:] = sorted(nums)[:]  # 这里直接用sorted了，因为排序是可以实现额外空间O(1)的，(如冒泡排序等)
         else:
             exchange = float('inf')
             for k, num in enumerate(nums[i+1:]):

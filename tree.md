@@ -1842,6 +1842,84 @@ class Solution:
       
 ```
 
+## A508. 出现次数最多的子树元素和
+
+难度`中等`
+
+#### 题目描述
+
+给你一个二叉树的根结点，请你找出出现次数最多的子树元素和。一个结点的「子树元素和」定义为以该结点为根的二叉树上所有结点的元素之和（包括结点本身）。
+
+你需要返回出现次数最多的子树元素和。如果有多个元素出现的次数相同，返回所有出现次数最多的子树元素和（不限顺序）。
+> **示例 1：**
+
+```
+输入:
+
+  5
+ /  \
+2   -3
+```
+
+返回 [2, -3, 4]，所有的值均只出现一次，以任意顺序返回所有值。
+
+> **示例 2：**
+
+```
+输入:
+
+  5
+ /  \
+2   -5
+```
+
+返回 [2]，只有 2 出现两次，-5 只出现 1 次。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/most-frequent-subtree-sum/>
+
+#### **思路:**
+
+
+　　记录所有子树元素和，统计它们的出现次数，将次数最多的打印出来。
+
+#### **代码:**
+
+```python
+class Solution:
+    def findFrequentTreeSum(self, root: TreeNode) -> List[int]:
+        if not root:
+            return []
+
+        subtrees = []
+        def dfs(node):
+            if not node:
+                return 0
+
+            s = node.val
+            if node.left:
+                s += dfs(node.left)
+
+            if node.right:
+                s += dfs(node.right)
+            
+            subtrees.append(s)
+            return s
+
+        dfs(root)
+        c = Counter(subtrees)
+        maximum = max(c.values())
+
+        ans = []
+        for num, count in c.items():
+            if count == maximum:
+                ans.append(num)
+
+        return ans
+
+```
+
 ## A513. 找树左下角的值
 
 难度`中等`

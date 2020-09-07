@@ -1083,3 +1083,109 @@ class Solution:
 
 ```
 
+## A5509. 避免重复字母的最小删除成本
+
+难度`中等`
+
+#### 题目描述
+
+给你一个字符串 `s` 和一个整数数组 `cost` ，其中 `cost[i]` 是从 `s` 中删除字符 `i` 的代价。
+
+返回使字符串任意相邻两个字母不相同的最小删除成本。
+
+请注意，删除一个字符后，删除其他字符的成本不会改变。
+
+> **示例 1：**
+
+```
+输入：s = "abaac", cost = [1,2,3,4,5]
+输出：3
+解释：删除字母 "a" 的成本为 3，然后得到 "abac"（字符串中相邻两个字母不相同）。
+```
+
+> **示例 2：**
+
+```
+输入：s = "abc", cost = [1,2,3]
+输出：0
+解释：无需删除任何字母，因为字符串中不存在相邻两个字母相同的情况。
+```
+
+> **示例 3：**
+
+```
+输入：s = "aabaa", cost = [1,2,3,4,1]
+输出：2
+解释：删除第一个和最后一个字母，得到字符串 ("aba") 。
+```
+
+**提示：**
+
+- `s.length == cost.length`
+- `1 <= s.length, cost.length <= 10^5`
+- `1 <= cost[i] <= 10^4`
+- `s` 中只含有小写英文字母
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/minimum-deletion-cost-to-avoid-repeating-letters/>
+
+#### **思路:**
+
+　　有贪心算法的思想，如果相邻的两个字母相同，就删除花费小的那个。  
+
+　　初始时维护一个空的数组`a`，将`s`中的字母逐个添加到`a`中，如果`s`中第`i`个字母与`a`最后一个字母相同，比较他们的`cost`，将`cost`小的删除，`cost`大的保留再`a`的末尾。  
+
+#### **代码:**
+
+**方法一：**模拟删除的过程（会超时）
+
+```python
+class Solution:
+    def minCost(self, s: str, cost: List[int]) -> int:
+        a = list(s)
+        
+        def helper(a, cost):
+            for i in range(len(a)-1):
+                if a[i] == a[i+1]:  # 要么删i 要么删i+1
+                    if cost[i] <= cost[i+1]:
+                        a.pop(i)
+                        ans = cost.pop(i)
+                    else:
+                        a.pop(i+1)
+                        ans = cost.pop(i+1)
+                        
+                    return ans + helper(a, cost)
+                
+            return 0
+        
+        return helper(a, cost)
+      
+```
+
+**方法二：**
+
+```python
+class Solution:
+    def minCost(self, s: str, cost: List[int]) -> int:
+        a = list(s)
+  
+        temp = []
+        costtemp = []
+        ans = 0
+        for i in range(len(a)):  # 前i个
+            if not temp or temp[-1] != a[i]:
+                temp.append(a[i])
+                costtemp.append(cost[i])
+            else:
+                if cost[i] <= costtemp[-1]:  # 不入
+                    ans += cost[i]
+                else:
+                    ans += costtemp[-1]
+                    costtemp.pop()
+                    costtemp.append(cost[i])
+                
+        return ans
+
+```
+

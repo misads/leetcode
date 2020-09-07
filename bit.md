@@ -233,6 +233,71 @@ class Solution:
 
 ```
 
+## A318. 最大单词长度乘积
+
+难度`中等`
+
+#### 题目描述
+
+给定一个字符串数组 `words`，找到 `length(word[i]) * length(word[j])` 的最大值，并且这两个单词不含有公共字母。你可以认为每个单词只包含小写字母。如果不存在这样的两个单词，返回 0。
+
+> **示例 1:**
+
+```
+输入: ["abcw","baz","foo","bar","xtfn","abcdef"]
+输出: 16 
+解释: 这两个单词为 "abcw", "xtfn"。
+```
+
+> **示例 2:**
+
+```
+输入: ["a","ab","abc","d","cd","bcd","abcd"]
+输出: 4 
+解释: 这两个单词为 "ab", "cd"。
+```
+
+> **示例 3:**
+
+```
+输入: ["a","aa","aaa","aaaa"]
+输出: 0 
+解释: 不存在这样的两个单词。
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/maximum-product-of-word-lengths/>
+
+#### **思路:**
+
+　　使用二进制进行状态压缩。26个小写字母可以用一个小于`2^26`的整数来表示。出现过的字母对应位上置1，没出现过的置为0。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def maxProduct(self, words: List[str]) -> int:
+        ans = 0
+
+        hashes = []
+
+        for word in words:
+            hash = 0
+            for letter in set(word):
+                pos = ord(letter) - 97
+                hash += 1 << pos
+
+            hashes.append(hash)
+
+        for i, word1 in enumerate(words):
+            for j, word2 in enumerate(words):
+                if hashes[i] & hashes[j] == 0:
+                    ans = max(ans, len(word1) * len(word2))
+
+        return ans
+```
+
 ## A1284. 转化为全零矩阵的最少反转次数
 
 难度`困难`

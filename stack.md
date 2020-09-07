@@ -413,3 +413,175 @@ class Solution:
     
 ```
 
+## A388. 文件的最长绝对路径
+
+难度`中等`
+
+#### 题目描述
+
+假设我们以下述方式将我们的文件系统抽象成一个字符串:
+
+字符串 `"dir\n\tsubdir1\n\tsubdir2\n\t\tfile.ext"` 表示:
+
+```
+dir
+    subdir1
+    subdir2
+        file.ext
+```
+
+目录 `dir` 包含一个空的子目录 `subdir1` 和一个包含一个文件 `file.ext` 的子目录 `subdir2` 。
+
+字符串 `"dir\n\tsubdir1\n\t\tfile1.ext\n\t\tsubsubdir1\n\tsubdir2\n\t\tsubsubdir2\n\t\t\tfile2.ext"` 表示:
+
+```
+dir
+    subdir1
+        file1.ext
+        subsubdir1
+    subdir2
+        subsubdir2
+            file2.ext
+```
+
+目录 `dir` 包含两个子目录 `subdir1` 和 `subdir2`。 `subdir1` 包含一个文件 `file1.ext` 和一个空的二级子目录 `subsubdir1`。`subdir2` 包含一个二级子目录 `subsubdir2` ，其中包含一个文件 `file2.ext`。
+
+我们致力于寻找我们文件系统中文件的最长 (按字符的数量统计) 绝对路径。例如，在上述的第二个例子中，最长路径为 `"dir/subdir2/subsubdir2/file2.ext"`，其长度为 `32` (不包含双引号)。
+
+给定一个以上述格式表示文件系统的字符串，返回文件系统中文件的最长绝对路径的长度。 如果系统中没有文件，返回 `0`。
+
+**说明:**
+
+- 文件名至少存在一个 `.` 和一个扩展名。
+- 目录或者子目录的名字不能包含 `.`。
+
+要求时间复杂度为 `O(n)` ，其中 `n` 是输入字符串的大小。
+
+请注意，如果存在路径 `aaaaaaaaaaaaaaaaaaaaa/sth.png` 的话，那么  `a/aa/aaa/file1.txt` 就不是一个最长的路径。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/longest-absolute-file-path/>
+
+#### **思路:**
+
+　　注意是只统计**文件**的长度，不包括文件夹；可以通过统计`\t`的个数来判断层级。  
+
+　　用一个栈来维护当前的路径，当层级`+1`时入栈，层级不变时先出栈后入栈，层级`-n`时连续出栈`n+1`后入栈。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def lengthLongestPath(self, input: str) -> int:
+        if not input:
+            return 0
+
+        files = input.split('\n')
+        stack = []
+        length = 0
+        ans = 0
+        for i in range(len(files)):
+            if i == 0:  # 根目录
+                length += len(files[0])
+                stack.append(len(files[0]))
+                if '.' in files[0]:
+                    ans = max(ans, length)
+            else:
+                level1 = files[i-1].count('\t')
+                level2 = files[i].count('\t')
+                file = files[i].lstrip('\t')
+                if level2 - level1 == 1:  # 前进1级
+                    # length += len(files[i])
+                    stack.append(len(file))
+                    if '.' in files[i]:
+                        ans = max(ans, sum(stack) + len(stack) - 1)
+                elif level2 == level1:  # 同级
+                    stack.pop()
+                    stack.append(len(file))
+                    if '.' in files[i]:
+                        ans = max(ans, sum(stack) + len(stack) - 1)
+                else:  # 后退level1 - level2级
+                    for _ in range(level1 - level2):
+                        stack.pop()
+
+                    stack.pop()
+                    stack.append(len(file))
+                    if '.' in files[i]:
+                        ans = max(ans, sum(stack) + len(stack) - 1)
+        return ans
+
+```
+
+## A503. 下一个更大元素 II
+
+难度`中等`
+
+#### 题目描述
+
+给定一个循环数组（最后一个元素的下一个元素是数组的第一个元素），输出每个元素的下一个更大元素。数字 x 的下一个更大的元素是按数组遍历顺序，这个数字之后的第一个比它更大的数，这意味着你应该循环地搜索它的下一个更大的数。如果不存在，则输出 -1。
+
+> **示例 1:**
+
+```
+输入: [1,2,1]
+输出: [2,-1,2]
+解释: 第一个 1 的下一个更大的数是 2；
+数字 2 找不到下一个更大的数； 
+第二个 1 的下一个最大的数需要循环搜索，结果也是 2。
+```
+
+**注意:** 输入数组的长度不会超过 10000。　
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/next-greater-element-ii/>
+
+#### **思路:**
+
+　　维护一个单调栈。(栈中存放的是数组元素的下标)  
+
+　　栈为空或者当前元素小于等于栈顶元素时入栈，如果当前元素大于栈顶元素，则连续出栈。  
+
+　　例如，对于`[7 4 3 2 5 6 1 8 4]`，操作步骤如下：
+
+```
+初始时栈为空，stack = []
+7入栈，stack = [7]
+4入栈，stack = [7, 4]
+3入栈，stack = [7, 4, 3]
+2入栈，stack = [7, 4, 3, 2]
+5大于栈顶元素，连续出栈，stack = [7, 5]，出栈的三个元素4, 3, 2的下一个更大的数即为5
+6大于栈顶元素，连续出栈，stack = [7, 6]，出栈的元素5下一个更大的数即为6
+1入栈，stack = [7, 6, 1]
+8大于栈顶元素，连续出栈，stack = [8]，出栈的元素7, 6, 1下一个更大的数即为8
+4入栈，stack = [8, 4]
+
+由于是循环数组，这样的操作要再进行一轮:
+7大于栈顶元素，连续出栈，stack = [8, 7]，出栈的元素4下一个更大的数即为7
+```
+
+　　将所有元素下一个更大的数记录下来返回即为结果。
+
+#### **代码:**
+
+```python
+class Solution:
+    def nextGreaterElements(self, nums: List[int]) -> List[int]:
+        n = len(nums)
+        ans = [-1] * n 
+
+        stack = []
+        for _ in range(2):  # 因为是循环数组 所以要2轮
+            for i, num in enumerate(nums):
+                while stack and num > nums[stack[-1]]:
+                    p = stack.pop()
+                    if ans[p] == -1:
+                        ans[p] = num
+
+                if not stack or num <= nums[stack[-1]]:
+                    stack.append(i)
+
+        return ans
+```
+

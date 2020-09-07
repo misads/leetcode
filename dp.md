@@ -3978,6 +3978,110 @@ class Solution:
       
 ```
 
+## A518. 零钱兑换 II
+
+难度`中等`
+
+#### 题目描述
+
+给定不同面额的硬币和一个总金额。写出函数来计算可以凑成总金额的硬币组合数。假设每一种面额的硬币有无限个。 
+
+
+> **示例 1:**
+
+```
+输入: amount = 5, coins = [1, 2, 5]
+输出: 4
+解释: 有四种方式可以凑成总金额:
+5=5
+5=2+2+1
+5=2+1+1+1
+5=1+1+1+1+1
+```
+
+> **示例 2:**
+
+```
+输入: amount = 3, coins = [2]
+输出: 0
+解释: 只用面额2的硬币不能凑成总金额3。
+```
+
+> **示例 3:**
+
+```
+输入: amount = 10, coins = [10] 
+输出: 1
+```
+**注意**
+
+你可以假设：
+
+- 0 <= amount (总金额) <= 5000
+- 1 <= coin (硬币面额) <= 5000
+- 硬币种类不超过 500 种
+- 结果符合 32 位符号整数
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/coin-change-2/>
+
+#### **思路:**
+
+　　方法一：使用lru_cache，`dp(n, m)`表示最大使用面值为`m`的硬币组成金额为`n`的方法数。  
+
+　　方法二：动态规划，每次在上一钟零钱状态的基础上增加新的面值。
+
+#### **代码:**
+
+　　方法一：(lru_cache)
+
+```python
+sys.setrecursionlimit(1000000)
+
+class Solution:
+    def change(self, amount: int, coins: List[int]) -> int:
+        if not coins:  # 没有硬币
+            if amount == 0:
+                return 1
+            else:
+                return 0
+
+        coins.sort()
+
+        from functools import lru_cache
+        @lru_cache(None)
+        def dp(n, mmax):
+            if n == 0:
+                return 1
+            
+            ans = 0
+            for coin in coins:
+                if coin <= mmax and n-coin >= 0:
+                    ans += dp(n-coin, coin)
+
+            return ans
+
+        return dp(amount, coins[-1])
+      
+```
+
+　　方法二：
+
+```python
+class Solution:
+    def change(self, amount: int, coins: List[int]) -> int:
+        dp = [0] * (amount + 1)
+        dp[0] = 1
+
+        for coin in coins:
+            for j in range(coin, amount + 1):
+                dp[j] += dp[j-coin]
+
+        return dp[-1]
+      
+```
+
 ## A1269. 停在原地的方案数
 
 难度`困难`

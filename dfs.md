@@ -870,6 +870,52 @@ class Solution(object):
       
 ```
 
+## A386. 字典序排数
+
+难度`中等`
+
+#### 题目描述
+
+给定一个整数 *n*, 返回从 *1* 到 *n* 的字典顺序。
+
+例如，
+
+给定 *n* =13，返回 [1,10,11,12,13,2,3,4,5,6,7,8,9] 。
+
+请尽可能的优化算法的时间复杂度和空间复杂度。 输入的数据 *n* 小于等于 5,000,000。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/lexicographical-numbers/>
+
+#### **思路:**
+
+　　可以用dfs，也可以用python自带的排序，用转换成字符串以后的类型作为key。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def lexicalOrder(self, n: int) -> List[int]:
+        ans = []
+        def dfs(x):
+            nonlocal n
+            if x <= n:
+                ans.append(x)
+            else:
+                return
+
+            x = x * 10
+            for i in range(10):
+                dfs(x+i)
+
+        for i in range(1, 10):
+            dfs(i)
+
+        return ans     
+
+```
+
 
 
 
