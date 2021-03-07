@@ -3702,20 +3702,24 @@ class Solution:
     def canPartition(self, nums: List[int]) -> bool:
         sums = sum(nums)
         if sums % 2 != 0: return False
-        half_sum = sums // 2  # 全部数字之和的一半
+        half_sum = sums // 2  # 全部数字和的一半
+        if nums[0] == half_sum: return True
 
         set_sums = set()
         set_sums.add(nums[0])
         for i in range(1, len(nums)):
             num = nums[i]
-            if num > half_sum: return False
-            if num == half_sum: return True
-            new_set = set()
-            for s in set_sums:
-                new_set.add(s + num)
-            set_sums = set_sums | new_set  # 取并集
-            if half_sum in set_sums:
+            if num > half_sum: 
+                return False
+
+            if num == half_sum: 
                 return True
+
+            for s in list(set_sums):
+                if s + num == half_sum:
+                    return True
+
+                set_sums.add(s + num)
 
         return False
 ```
@@ -4801,7 +4805,7 @@ class Solution:
 
 ```
 
-## 周赛题：切披萨的方案数
+## A1444. 切披萨的方案数
 
 难度`困难`
 

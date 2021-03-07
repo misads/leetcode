@@ -95,7 +95,7 @@ class Solution:
 
 #### 思路  
 
-　　方法一：贪心算法。与[A45. 跳跃游戏II](/array?id=a45-跳跃游戏-ii)类似，每次都跳到最划算的位置。  
+　　方法一：用变量`most_far`记录能跳到的最远位置，每次都更新能跳到的最远位置。如果能跳到的最远位置小于当前查找的位置，则跳不到最后。
 　　方法二：从右往左遍历，如果某个位置能走到最后则截断后面的元素。如果某个元素为`0`则从前面找能走到它后面的。方法二比方法一用时短一些。  
 
 #### 代码  
@@ -106,22 +106,14 @@ class Solution:
 class Solution:
     def canJump(self, nums: List[int]) -> bool:
         n = len(nums)
-        if n == 1:
-            return True
-
-        i = 0  # 当前位置
-        while nums[i] != 0 and i < n-1:
-            temp_indic = 0
-            temp_max = -1
-            for j in range(nums[i]):
-                if i + j + 1 >= n - 1:
-                    return True
-                if nums[i + j + 1] + j > temp_max:
-                    temp_indic = i + j + 1
-                    temp_max = nums[i + j + 1] + j
-            i = temp_indic
-
-        return i >= n-1
+        most_far = 0
+        for i in range(n):
+            if most_far < i:
+                return False
+            if i + nums[i] > most_far:
+                most_far = i + nums[i]
+            
+        return True
 ```
 
 　　方法二：

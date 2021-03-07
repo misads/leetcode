@@ -1,71 +1,5 @@
 # 字符串
 
-## A3. 无重复字符的最长子串
-
-难度 `中等`  
-#### 题目描述
-
-给定一个字符串，请你找出其中不含有重复字符的 **最长子串** 的长度。
-
-> **示例 1:**
-
-```
-输入: "abcabcbb"
-输出: 3 
-解释: 因为无重复字符的最长子串是 "abc"，所以其长度为 3。
-```
-
-> **示例 2:**
-
-```
-输入: "bbbbb"
-输出: 1
-解释: 因为无重复字符的最长子串是 "b"，所以其长度为 1。
-```
-
-> **示例 3:**
-
-```
-输入: "pwwkew"
-输出: 3
-解释: 因为无重复字符的最长子串是 "wke"，所以其长度为 3。
-     请注意，你的答案必须是 子串 的长度，"pwke" 是一个子序列，不是子串。
-```
-
-#### 题目链接
-
-<https://leetcode-cn.com/problems/longest-substring-without-repeating-characters/>
-
-
-#### 思路  
-
-
-　　使用双指针滑动窗口的方法。`j`向前遍历，`i`指向重复的位置（`i`只会向右移动），在`j`遍历的同时用一个字典记下`每个字母最后出现的下标`，`j - i + 1`的最大值即为结果。  
-
-#### 代码  
-```python
-class Solution:
-    def lengthOfLongestSubstring(self, s: str) -> int:
-        n = len(s)
-        if n <= 1:
-            return n 
-        ans = 1
-        dict = {s[0]: 0}
-        i, j  = 0, 1
-        j = 1
-        while j < n:
-            char = s[j]
-            if char in dict:
-                i = max(i, dict[char] + 1)
-            
-            dict[char] = j
-            ans = max(ans, j-i+1)
-            j += 1
-
-        return ans
-         
-```
-
 ## A5. 最长回文子串
 
 难度 `中等`  
@@ -111,33 +45,31 @@ class Solution:
 
 ```python
 class Solution:
-    def search(self, s: str, i: int, j: int) -> str:
-        if j-i==2:
-            ans = s[i+1]
-        else:
-            ans = ""
-
-        while(i>=0 and j<len(s) and s[i]==s[j]):
-            i -= 1
-            j += 1
-        return s[i+1: j]
-
     def longestPalindrome(self, s: str) -> str:
-        maximum = 0
-        ans = ""
-        update = lambda n: (len(n),n)
-        for i in range(len(s)):
-            lr = self.search(s, i-1, i+1)
-            # l = search(s, i-1, i)
-            r = self.search(s, i, i+1)
-            if len(lr) > maximum:
-                maximum, ans = update(lr)
-            # if len(l) > mmax:
-            #     mmax, ans = update(l)
-            if len(r) > maximum:
-                maximum, ans = update(r)
-        return ans
+        ans = ''
+        n = len(s)
+        for c in range(n):  # 奇中心
+            i = 0
+            # [c-i: c+i] 不能超过整个字符串的范围
+            while c - i >= 0 and c + i < n:
+                if s[c - i] == s[c + i]:
+                    if 2 * i + 1 > len(ans):
+                        ans = s[c-i: c+i+1]
+                    i += 1
+                else:
+                    break
 
+        for c in range(n-1):  # 偶中心
+            i = 0
+            while c - i >= 0 and c + i < n - 1:
+                if s[c - i] == s[c + i + 1]:
+                    if 2 * i + 2 > len(ans):
+                        ans = s[c-i: c+i+2]
+                    i += 1
+                else:
+                    break
+
+        return ans
 ```
 
 　　**方法二：**(马拉车算法)
@@ -552,21 +484,21 @@ M             1000
 class Solution:
     def intToRoman(self, num: int) -> str:
         ans = ''
-        def helper(a, fifty, ten, hundred):
+        def helper(digit, five, one, ten):
             nonlocal ans
-            if a == 9:
-                ans += ten + hundred
-            elif a >= 5:
-                ans += fifty + ten * (a-5)
-            elif a == 4:
-                ans += ten + fifty
-            else:
-                ans += ten * a
-
-        helper(num // 1000, '', 'M', '')  # 千位
-        helper(num % 1000 // 100, 'D', 'C', 'M')  # 百位
-        helper(num % 100 // 10, 'L', 'X', 'C')  # 十位
-        helper(num % 10 , 'V', 'I', 'X')  # 十位
+            if digit <= 3:
+                ans += one * digit
+            elif digit == 4:
+                ans += one + five
+            elif digit <= 8:
+                ans += five + one * (digit - 5)
+            elif digit == 9:
+                ans += one + ten
+            
+        helper(num // 1000, '', 'M', '')
+        helper(num % 1000 // 100, 'D', 'C', 'M')
+        helper(num % 100 // 10, 'L', 'X', 'C')
+        helper(num % 10, 'V', 'I', 'X')
 
         return ans
 
@@ -652,21 +584,22 @@ M             1000
 ```python
 class Solution:
     def romanToInt(self, s: str) -> int:
-        mapper = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
-        # 后面一个如果比前面大 就减➖ 否则就加
+        f = {'I': 1,
+             'V': 5,
+             'X': 10,
+             'L': 50,
+             'C': 100,
+             'D': 500,
+             'M': 1000
+        }
         ans = 0
-        n = len(s)
-        if not n: return 0
-
-        i = 0
-        for i in range(n):        
-            if i < n - 1 and mapper[s[i+1]] > mapper[s[i]]:
-                ans -= mapper[s[i]]
+        for i, char in enumerate(s):
+            if i == len(s) - 1 or f[char] >= f[s[i+1]]:
+                ans += f[char]
             else:
-                ans += mapper[s[i]]
-
+                ans -= f[char]
+                
         return ans
-            
 ```
 
 ## A14. 最长公共前缀

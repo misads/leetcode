@@ -98,6 +98,87 @@ class Solution:
 
 ```
 
+## A397. 整数替换
+
+难度`中等`
+
+#### 题目描述
+
+给定一个正整数 *n*，你可以做如下操作：
+
+\1. 如果 *n* 是偶数，则用 `n / 2`替换 *n*。
+\2. 如果 *n* 是奇数，则可以用 `n + 1`或`n - 1`替换 *n*。
+*n* 变为 1 所需的最小替换次数是多少？
+
+> **示例 1:**
+
+```
+输入:
+8
+
+输出:
+3
+
+解释:
+8 -> 4 -> 2 -> 1
+```
+
+> **示例 2:**
+
+```
+输入:
+7
+
+输出:
+4
+
+解释:
+7 -> 8 -> 4 -> 2 -> 1
+或
+7 -> 6 -> 3 -> 2 -> 1
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/integer-replacement/>
+
+#### **思路:**
+
+　　 因为要以**最短的替换次数**到达1，相当于边权为1的最短路径问题(每次替换都只占用1次次数)，使用bfs。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def integerReplacement(self, n: int) -> int:
+        visited = defaultdict(bool)
+        queue = [n]  # 开始的位置
+        visited[n] = True
+        depth = 0
+
+        while queue:
+            for q in queue:
+                if q == 1:
+                    return depth  # 到达终点的条件
+
+            depth += 1
+            temp = []
+            for q in queue:
+                neibours = []
+                if q % 2 == 0:
+                    neibours = [q//2]
+                else:
+                    neibours = [q+1, q-1]
+
+                for neibour in neibours:  # 所有相邻的路径
+                    if not visited[neibour]:
+                        if neibour not in temp:
+                            visited[neibour] = True
+                            temp.append(neibour)
+
+            queue = temp
+```
+
 ## A417. 太平洋大西洋水流问题
 
 难度`中等`

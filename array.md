@@ -31,13 +31,13 @@
 ```python
 class Solution:
     def twoSum(self, nums: List[int], target: int) -> List[int]:
-        dic = {}
+        s = {}
         for i, num in enumerate(nums):
-            dic[num] = i
-        for i, num in enumerate(nums):
-            remain = target-num
-            if remain in dic and i != dic[remain]:
-                return [i, dic[remain]]
+            if target - num in s:
+                return [i, s[target - num]]
+
+            s[num] = i
+         
 ```
 
 ## A4. 寻找两个有序数组的中位数
