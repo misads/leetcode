@@ -137,48 +137,37 @@ nums2 = [3, 4]
 
 #### **思路**
 
-　　将两个数组合并，然后按顺序查找即可。
+　　① 构建一个新函数`findk`，用于查找`nums1`和`nums2`中第`k`小的数。    
+
+　　② 无论数组长度为奇数还是偶数，中位数都可以用第`(n + 1) // 2`小的数和第`(n + 2) // 2`小的数的均值来表示。  
+
+　　③ findk使用二分法查询，来达到`O(log(m + n))`的时间复杂度。  
 
 #### **代码**
 
 ```python
-"""
-    执行用时 : 112 ms, 在所有 python3 提交中击败了91.33%的用户
-    内存消耗 : 12.8 MB, 在所有 python3 提交中击败了99.43%的用户
-"""
-def findMedianSortedArrays(nums1: list, nums2: list) -> float:
-    i = 0
-    j = 0
-    l1 = len(nums1)
-    l2 = len(nums2)
-    ans = []
-    while i<l1 and j<l2:
-        x = nums1[i]
-        y = nums2[j]
-        if x<=y:
-            ans.append(x)
-            i+=1
-        else:
-            ans.append(y)
-            j+=1
+class Solution:
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        def findk(nums1, nums2, k):
+            if not nums1: return nums2[k-1]
+            if not nums2: return nums1[k-1]
+            if k == 1: return min(nums1[0], nums2[0])
 
-    if i<l1:
-        ans.extend(nums1[i-l1:])
-    else: 
-        ans.extend(nums2[j-l2:])
+            mid1 = nums1[k // 2 - 1] if k // 2 - 1 < len(nums1) else float('inf')
+            mid2 = nums2[k // 2 - 1] if k // 2 - 1 < len(nums2) else float('inf')
 
-    # print(ans)
-    l = len(ans)
-    if len(ans) %2==1:
-        return ans[l//2]
-    else:
-        return (ans[l//2-1] + ans[l//2])/2
+            if mid1 < mid2:
+                return findk(nums1[k // 2:], nums2, k - k // 2)
+            else:
+                return findk(nums1, nums2[k // 2:], k - k // 2) 
 
+        n = len(nums1) + len(nums2)
+        c1 = (n + 1) // 2
+        c2 = (n + 2) // 2
+        # print(c1, c2)
+        return (findk(nums1, nums2, c1) + findk(nums1, nums2, c2)) / 2
 
-nums2 = [1,2]
-nums1 = [3,4]
-print(findMedianSortedArrays(nums1,nums2))
-
+        
 ```
 
 
@@ -227,33 +216,31 @@ print(findMedianSortedArrays(nums1,nums2))
 
 ```python
 class Solution:
-    def search(self, s: str, i: int, j: int) -> str:
-        if j-i==2:
-            ans = s[i+1]
-        else:
-            ans = ""
-
-        while(i>=0 and j<len(s) and s[i]==s[j]):
-            i -= 1
-            j += 1
-        return s[i+1: j]
-
     def longestPalindrome(self, s: str) -> str:
-        maximum = 0
-        ans = ""
-        update = lambda n: (len(n),n)
-        for i in range(len(s)):
-            lr = self.search(s, i-1, i+1)
-            # l = search(s, i-1, i)
-            r = self.search(s, i, i+1)
-            if len(lr) > maximum:
-                maximum, ans = update(lr)
-            # if len(l) > mmax:
-            #     mmax, ans = update(l)
-            if len(r) > maximum:
-                maximum, ans = update(r)
-        return ans
+        ans = ''
+        n = len(s)
+        for c in range(n):  # 奇中心
+            i = 0
+            # [c-i: c+i] 不能超过整个字符串的范围
+            while c - i >= 0 and c + i < n:
+                if s[c - i] == s[c + i]:
+                    if 2 * i + 1 > len(ans):
+                        ans = s[c-i: c+i+1]
+                    i += 1
+                else:
+                    break
 
+        for c in range(n-1):  # 偶中心
+            i = 0
+            while c - i >= 0 and c + i < n - 1:
+                if s[c - i] == s[c + i + 1]:
+                    if 2 * i + 2 > len(ans):
+                        ans = s[c-i: c+i+2]
+                    i += 1
+                else:
+                    break
+
+        return ans
 ```
 
 　　**方法二：**(马拉车算法)
@@ -431,7 +418,7 @@ string convert(string s, int numRows) {
 
 #### 思路  
 
-　　感觉这种题意义不大，面向测试用例编程。  
+　　这题建议用C++做，Python由于没有整数范围只能面向测试用例编程。  
 
 #### 代码  
 
@@ -538,7 +525,7 @@ p = "mis*is*p*."
 
 #### 思路  
 
-　　动态规划，类似于[A44. 通配符匹配](/dp?id=a44-通配符匹配)。`dp[i][j]`记录`s[:i]`能否匹配`p[:j]`。  
+　　动态规划。用，`dp[i][j]`记录`s[:i]`能否匹配`p[:j]`。  
 
 　　先处理`s`为空的情况。空字符串能匹配空字符串，另外只有当`p[:j]`为`"a*b*c*.*d*"`这样全是`"?*"`的时候才能匹配空字符串。  
 
@@ -557,33 +544,27 @@ p = "mis*is*p*."
 ```python
 class Solution:
     def isMatch(self, s: str, p: str) -> bool:
-        # dp[i][j] s的前i个 p的前j个
-        ls = len(s)
-        lp = len(p)
-        dp = [[False for _ in range(lp+1)] for _ in range(ls+1)]
-        dp[0][0] = True  # 空匹配空
-        for j in range(1, lp, 2):  # 类似'a*.*'匹配空的s
-            if p[j] == '*':
-                dp[0][j+1] = True
-            else:
-                break
+        np = len(p)
+        ns = len(s)
+        dp = [[False for _ in range(np+1)] for _ in range(ns+1)]
+        # dp[i][j] 表示s[:i]匹配p[:j]
+        dp[0][0] = True
 
-        for i in range(1, ls+1):
-            j = 1
-            while j < lp + 1:
-                if j != lp and p[j] == '*':
-                    if p[j-1] == '.':  # 处理 “.*"
-                        dp[i][j+1] = dp[i-1][j+1] or dp[i][j-1]
-                    else:  # 处理 “a*"
-                        dp[i][j+1] = (dp[i-1][j+1] and s[i-1] == p[j-1]) or dp[i][j-1]
-                    j += 2
-                else:
-                    if p[j-1] == '.':  # 处理 "."
-                        dp[i][j] = dp[i-1][j-1]
-                    else:  # 处理普通字母
-                        dp[i][j] = dp[i-1][j-1] and s[i-1] == p[j-1]
-                    j += 1
-
+        for j in range(1, np+1):
+            if p[j-1] == '*':  # s='' 匹配 p='a*b*c*'
+                dp[0][j] = dp[0][j-2]
+            
+        for i in range(1, ns+1):
+            for j in range(1, np+1):
+                if p[j-1] == '.':  # ab a.
+                    dp[i][j] = dp[i-1][j-1] 
+                elif p[j-1] == '*':
+                    if p[j-2] == '.':  # .*     abcasdad a.*
+                        dp[i][j] = dp[i-1][j] or dp[i][j-2]
+                    else:  # a*  baaaaaaa ba*
+                        dp[i][j] = (s[i-1]==p[j-2] and dp[i-1][j]) or dp[i][j-2]
+                else:  # 字母
+                    dp[i][j] = dp[i-1][j-1] and  s[i-1] == p[j-1]
         # print(dp)
         return dp[-1][-1]
 ```
@@ -619,65 +600,26 @@ class Solution:
 
 #### 思路  
 
-　　方法一：用`lefts`记录`heights`从左到右所有比之前最高的还高的线，`rights`记录从右到左所有比之前最高的还高的线。遍历`lefts`和`rights`，其中必有一种组合能够容纳最多的水。  
-　　方法二：双指针，初始时设头指针和尾指针分别为`i`和`j`。我们能够发现不管是左指针向右移动一位，还是右指针向左移动一位，容器的底都是一样的，都比原来减少了 1。这种情况下我们想要让指针移动后的容器面积增大，就要使移动后的容器的高尽量大，所以我们选择指针所指的高较小的那个指针进行移动，这样我们就保留了容器较高的那条边，放弃了较小的那条边，以获得有更高的边的机会。
+　　双指针，初始时设头指针和尾指针分别为`a`和`b`。我们能够发现不管是左指针向右移动一位，还是右指针向左移动一位，容器的底都是一样的，都比原来减少了 1。这种情况下我们想要让指针移动后的容器面积增大，就要使移动后的容器的高尽量大，所以我们选择指针所指的高较小的那个指针进行移动，这样我们就保留了容器较高的那条边，放弃了较小的那条边，以获得有更高的边的机会。
 
 #### 代码  
 
-　　方法一：
-
 ```python
 class Solution:
     def maxArea(self, height: List[int]) -> int:
-        lefts = [0]
-        rights = [len(height)-1]
-        tmp = height[0]
-        for i, num in enumerate(height):
-            if num > tmp: 
-                lefts.append(i)
-                tmp = num
-
-
-        tmp = height[-1]
-        for i in range(len(height)-1,-1,-1):
-            num = height[i]
-            if num > tmp: 
-                rights.append(i)
-                tmp = num
-
-        def calc(i1, i2):
-            return (i2-i1) * (min(height[i1],height[i2]))
-
-        l, r = len(lefts), len(rights)
-        i, j = 0, 0
+        n = len(height)
+        a, b = 0, n-1
         ans = 0
+        while a != b:
+            new = min(height[a], height[b]) * (b-a)
+            ans = max(ans, new)
 
-        for ll in lefts:
-            for rr in rights:
-                temp = calc(ll,rr)
-                if temp > ans:
-                    ans = temp
-        return ans
-```
-
-　　方法二：
-
-```python
-class Solution:
-    def maxArea(self, height: List[int]) -> int:
-        l = len(height)
-        i, j = 0, l - 1
-        ans = 0
-        while i < j:
-            h = min(height[i], height[j])
-            ans = max(ans, h * (j-i))
-            # 指针向所指的高较小的那个指针进行移动
-            if height[i] < height[j]:
-                i += 1
+            if height[a] < height[b]:
+                a += 1
             else:
-                j -= 1
-
+                b -= 1
         return ans
+
 ```
 
 ## A12. 整数转罗马数字
@@ -913,7 +855,7 @@ class Solution:
 
 #### 思路  
 
-　　先找最短字符的长度`min_l`，然后从`0 ~ min_l`逐列扫描，如果有不同的就退出循环。如下图所示：  
+　　先找最短字符的长度`n`，然后从`0 ~ n`逐列扫描，如果有不同的就退出循环。如下图所示：  
 
 　　<img src="_img/a14.png" style="zoom:40%"/>
 
@@ -922,19 +864,17 @@ class Solution:
 ```python
 class Solution:
     def longestCommonPrefix(self, strs: List[str]) -> str:
-        n = len(strs)
-        if not n: return ''
+        if not strs: return ''
+        n = min([len(s) for s in strs])
+        ans = 0
 
-        minimum = min([len(s) for s in strs])  # 最短的字符长度
-        ans = ''
-        str_0 = strs[0]
-        for i in range(minimum):
-            if all([s[i] == str_0[i] for s in strs]):
-                ans += str_0[i]
-            else:
-                break
-
-        return ans
+        for i in range(n):
+            char = strs[0][i]
+            for s in strs:
+                if s[i] != char:
+                    return strs[0][:i]
+         
+        return strs[0][:n]
       
 ```
 
@@ -969,53 +909,39 @@ class Solution:
 
 #### 思路  
 
-　　记录每个数字出现的次数，如果有`多于3次`的0，或者`多于2次`的其他数，则忽略不使用。  
-　　分以下几种情况分别考虑：  
-
-　　0 + 0 + 0 = 0，0 + `一对相反数` = 0， `两个正数` + `一个负数` = 0， `两个负数` + `一个正数` = 0。
+　　记录每个数字出现的次数，多于2个的数只保留2个(可以优化运行速度)。  
+　　将三个数记为`a, b, 0-a-b`，枚举`a`和`b`，然后在counter中检查是否还有`0-a-b`。
 
 #### 代码  
 ```python
 class Solution:
     def threeSum(self, nums: List[int]) -> List[List[int]]:
-        if len(nums) == 0:
-            return []
-        times = {}  # 记录每个数出现的次数，其中0最多出现3次，其他数最多出现2次
-        new_nums = []
         ans = set()
-        for num in nums:
-            if num not in times:
-                times[num] = 1
-                new_nums.append(num)
-            else:
-                if num == 0 and times[num] <= 2:
-                    times[num] += 1
-                    new_nums.append(num)
-                if nums != 0 and times[num] <= 1:
-                    times[num] += 1
-                    new_nums.append(num)
-        
-        new_nums = sorted(new_nums)  # 构建一个新的数组并排序，去掉了冗余的数字
+        count = Counter(nums)
+        temp = []  # 优化，多于2个的数只保留2个
+        for k, v in count.items():
+            temp.append(k)
+            if v >= 2:
+                temp.append(k)
 
-        if 0 in times:
-            if times[0] == 3:  # 3个0的特例
-                ans.add((0, 0, 0))
-            for num in times:
-                if num > 0 and -num in times:  # 0和一对相反数
-                    ans.add((-num, 0, num))
+        n = len(temp)
+        for i in range(n):
+             for j in range(n):
+                if i == j:
+                    continue
+                a = temp[i]
+                b = temp[j]
+                c = 0 - a - b
 
-        for i, num1 in enumerate(new_nums):
-            for j in range(i+1, len(new_nums)):
-                num2 = new_nums[j]
-                if num1 < 0 and num2 < 0 and -num1-num2 in times:  # 两正一负
-                    ans.add((num1, num2, -num1-num2))
-                if num1 > 0 and num2 > 0 and -num1-num2 in times:  # 两负一正
-                    ans.add((-num1-num2, num1, num2))
+                count_c = count[c]
+                if a == c: count_c -= 1
+                if b == c: count_c -= 1
+                if count_c:
+                    ans.add(tuple(sorted([a, b, c])))
 
-        return [i for i in ans]
+        return [list(tp) for tp in ans]
+
 ```
-
-
 
 ## A16. 最接近的三数之和
 
@@ -1098,14 +1024,14 @@ class Solution:
 ```python
 class Solution:
     def letterCombinations(self, digits: str) -> List[str]:
-        mapper = ['', '', 'abc', 'def', 'ghi', 'jkl', 'mno', 'pqrs', 'tuv', 'wxyz']
+        f = ['', '', 'abc', 'def', 'ghi', 'jkl', 'mno', 'pqrs', 'tuv', 'wxyz']
         if not digits: return []
         
         ans = ['']
         for digit in digits:
             temp = []
             for a in ans:
-                for alpha in mapper[int(digit)]:  # 下一个数字的所有字母 添加到之前的所有结果上
+                for alpha in f[int(digit)]:  # 下一个数字的所有字母 添加到之前的所有结果上
                     temp.append(a + alpha)
 
             ans = temp
@@ -1229,9 +1155,9 @@ class Solution:
 
 #### 思路  
 
-　　感觉超出了简单的范围。注意`”([])"`也可以，并不是必须大括号套中括号套小括号。  
-
 　　堆栈，如果为左括号(`{ [ (`)就入栈，如果为右括号则判断能否和`栈顶元素`闭合。  
+
+　　注意`”([])"`也可以，并不是必须大括号套中括号套小括号。 
 
 　　**注意：**字符用完时栈必须为空，否则无效。
 
@@ -1240,29 +1166,78 @@ class Solution:
 ```python
 class Solution:
     def isValid(self, s: str) -> bool:
-        if not s: return True  # 空的有效
-        mapper = {'(': 1, '[': 2, '{': 3, ')': -1, ']': -2, '}': -3}
-        # 正数压栈 负数出栈
-
         stack = []
-        for c in s:
-
-            if len(stack) == 0:  # 栈为空
-                if mapper[c] < 0: return False
-                stack.append(mapper[c])
+        f = {'(': 1, '[': 2, '{': 3, ')': -1, ']': -2, '}': -3}
+        for char in s:
+            if f[char] > 0:
+                stack.append(f[char])
             else:
-                peek = stack[-1]
-                if mapper[c] > 0:  # 左括号入栈
-                    stack.append(mapper[c])
-                elif mapper[c] == -peek:  # 右括号，和栈顶元素匹配
-                    stack.pop()
-                else:
+                if not stack or stack[-1] + f[char] != 0: 
                     return False
-                
-            # print(stack)
-        return len(stack) == 0  # 最后栈要为空
+                stack.pop()
 
-        
+        return len(stack) == 0
+            
+```
+
+## A21. 合并两个有序链表
+
+难度`简单`
+
+#### 题目描述
+
+将两个升序链表合并为一个新的 **升序** 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。 
+
+> **示例 1：**
+
+```
+输入：l1 = [1,2,4], l2 = [1,3,4]
+输出：[1,1,2,3,4,4]
+```
+
+> **示例 2：**
+
+```
+输入：l1 = [], l2 = []
+输出：[]
+```
+
+> **示例 3：**
+
+```
+输入：l1 = [], l2 = [0]
+输出：[0]
+```
+
+**提示：**
+
+- 两个链表的节点数目范围是 `[0, 50]`
+- `-100 <= Node.val <= 100`
+- `l1` 和 `l2` 均按 **非递减顺序** 排列
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/merge-two-sorted-lists/>
+
+#### **思路:**
+
+　　递归。
+　　
+
+#### **代码:**
+
+```python
+class Solution:
+    def mergeTwoLists(self, l1: ListNode, l2: ListNode) -> ListNode:
+        if not l1: return l2
+        if not l2: return l1
+        if l1.val <= l2.val:
+            l1.next = self.mergeTwoLists(l1.next, l2)
+            return l1
+        else:
+            l2.next = self.mergeTwoLists(l2.next, l1)
+            return l2
+          
 ```
 
 ## A22. 括号生成
@@ -1302,26 +1277,31 @@ class Solution:
 ```python
 class Solution:
     def generateParenthesis(self, n: int) -> List[str]:
-        temp = ['.'] * (n * 2)
+        stack = []
+        temp = []
         ans = []
-        # i是当前下标，count_left是左括号的数量
-        def dfs(i, count, count_left):  # "(":count + 1，")": count-1。 
-            nonlocal n
+        def dfs(i):  # 0, n*2-1            
             if i >= n * 2:
-                ans.append(''.join(temp))
+                if len(stack) == 0:
+                    ans.append(''.join(temp))
                 return
-            if count > 0:
-                temp[i] = ')'
-                dfs(i + 1, count - 1, count_left)  #减少count
-                temp[i] = '.'
-            if count_left < n:  # 如果还有左括号
-                temp[i] = '('
-                dfs(i + 1, count + 1, count_left + 1)  # 增加count
-                temp[i] = '.'
 
-        dfs(0, 0, 0)
-        return ans
+            if i <= 2 * n-1:
+                stack.append('(')
+                temp.append('(')
+                dfs(i+1)
+                stack.pop()
+                temp.pop()
 
+            if stack:
+                temp.append(')')
+                stack.pop()
+                dfs(i+1)
+                stack.append('(')
+                temp.pop()
+
+        dfs(0)
+        return ans    
 ```
 
 ## A23. 合并K个排序链表
@@ -1531,24 +1511,24 @@ class Solution:
 #### 思路  
 
 
-　　用python自带的`remove`函数（这个解法很耗时间）。优化时间复杂度的方法可以使用双指针。
+　　用`None`标记重复的数。然后将不是`None`的元素放在最前面。
 
 #### 代码  
 ```python
 class Solution:
     def removeDuplicates(self, nums: List[int]) -> int:
-        shown = set()
-        i = 0
-        while i < len(nums):
-            num = nums[i]
-            if num in shown:
-                nums.remove(num)
-                i -= 1
-            else:
-                shown.add(num)
-            i += 1
+        n = len(nums)
+        for i in range(n-1):
+            if nums[i] == nums[i+1]:
+                nums[i] = None
 
-        return len(nums)
+        cur = 0
+        for i in range(n):
+            if nums[i] is not None:
+                nums[cur] = nums[i]
+                cur += 1
+
+        return cur
 ```
 
 ## A27. 移除元素
@@ -1595,18 +1575,22 @@ class Solution:
 #### 思路  
 
 
-　　挑战最短代码。
+　　见代码。
 
 #### 代码  
 ```python
 class Solution:
     def removeElement(self, nums: List[int], val: int) -> int:
-        c = nums.count(val)
-        while c:
-            nums.remove(val)
-            c -= 1
-            
-        return len(nums)
+        cur = 0
+        n = len(nums)
+        for i in range(n):
+            if nums[i] == val:
+                pass
+            else:
+                nums[cur] = nums[i]
+                cur += 1
+
+        return cur
 ```
 
 ## A29. 两数相除
@@ -1678,10 +1662,7 @@ class Solution:
         ans = max(ans, -2**31 )
 
         return ans
-
 ```
-
-
 
 ## A30. 串联所有单词的子串
 
@@ -1721,80 +1702,31 @@ class Solution:
 #### 思路  
 
 　　注意题目中单词的长度是`相同的` 。  
-
-　　方法一：暴力，从字符串的每个字母开始遍历，用一个列表记录当前剩余的单词，用递归来匹配。  
-　　方法二：因为`words`中的单词是可以重复的，用一个字典记录`words`中每个单词出现的次数，然后再用递归来匹配。
+　　因为`words`中的单词是可以重复的，用一个字典记录`words`中每个单词出现的次数，然后再用递归来匹配。
 
 #### 代码  
 
-　　**暴力（2272ms）：**
-
 ```python
-sys.setrecursionlimit(100000)
 class Solution:
     def findSubstring(self, s: str, words: List[str]) -> List[int]:
-        # 'abcdefghj'
-        if not s or not len(words): return []
+        ans = []
+        count = Counter(words)
+
         word_len = len(words[0])
-
-        def match(s: str, can_use: List):
-            front_l = s[:word_len]  # s前word_len个字母
-            if len(can_use) == 0: return True
-            if front_l not in can_use:   # 如果可使用列表中没有这个单词
-                return False
-            temp = can_use.copy()
-            temp.remove(front_l)  # 去掉已经用了的单词
-            return match(s[word_len:], temp)
-
-        length = len(words) * word_len
-        ls = len(s)
-        ans = []
-        for i in range(ls - length + 1):
-            s_now = s[i: i + length]
-            if match(s_now, words):
-                ans.append(i)
-
-        return ans
-      
-```
-
-　　**改进（568ms）：**
-
-```python
-sys.setrecursionlimit(100000)
-class Solution:
-    def findSubstring(self, s: str, words: List[str]) -> List[int]:
-        # 'abcdefghj'
-        if not s or not len(words): return []
-        word_len = len(words[0])  # 字典记录每个单词出现的次数
-
-        dict_w = {}
-        for word in words:
-            if word not in dict_w:
-                dict_w[word] = 1
+        n = word_len * len(words)
+        
+        for i in range(len(s) - n + 1):
+            temp = count.copy()
+            sub = s[i: i+n]  # 子串
+            for j in range(0, n, word_len):
+                word = sub[j: j+word_len]  # 把子串拆分成单词
+                if word not in temp or temp[word] == 0:
+                    break
+                temp[word] -= 1
             else:
-                dict_w[word] += 1
-
-        def match(s: str):
-            front_l = s[:word_len]  # s前word_len个字母
-            if len(s) == 0: return True
-            if not dict_w.get(front_l):  # 如果可使用字典中没有这个单词或者已经达到使用次数
-                return False
-            dict_w[front_l] -= 1
-            can_match = match(s[word_len:])
-            dict_w[front_l] += 1  # 返回之前要加回去，这样下一次调用match时dict_w才能保持不变
-            return can_match
-
-        length = len(words) * word_len
-        ls = len(s)
-        ans = []
-        for i in range(ls - length + 1):
-            s_now = s[i: i + length]
-            if match(s_now):
                 ans.append(i)
 
         return ans
-
 ```
 
 ## A31. 下一个排列
@@ -1893,7 +1825,7 @@ class Solution:
 
 　　如上图所示，假设`dp[i]`=`6`。那么计算`dp[i+1]`时，如果遇到`')'`，会到`pre`(即`i-dp[i]`)的位置寻找`'('`，如果找到了，则`dp[i+1]`=`dp[i]`+`2`=`8`。并且还要把`pre`之前的也考虑上，即`dp[i+1]`+=`dp[pre - 1]`=`8 + 2`=`10`。  
 
-　　方法三：用一个栈记录下标，初始栈为`[-1]`，当前元素为`'('`时入栈，为`')'`时出栈。如果栈为空了则将当前元素下标入栈。  
+　　方法三：① 用一个栈记录下标，栈的第一个元素记录的是起始位置的**前一个**，初始为`[-1]`。② 元素为`'('`时入栈，为`')'`时出栈。③ 如果出栈后栈空了(右括号数多于左括号)则将当前元素下标放在栈的第一个。  
 
 #### 代码  
 
@@ -1949,19 +1881,18 @@ class Solution:
 class Solution:
     def longestValidParentheses(self, s: str) -> int:
         stack = [-1]
-        max_path = 0
-        for idx,char in enumerate(s):
+        ans = 0
+        for i, char in enumerate(s):
             if char == '(':
-                stack.append(idx)
-            else:
-                stack.pop() #匹配括号出栈
-                if not stack:# 如果没有开始下标
-                    stack.append(idx)
+                stack.append(i)
+            elif char == ')':
+                stack.pop()
+                if not stack:
+                    stack.append(i)
                 else:
-                    path = idx - stack[-1] #保存的开始下标
-                    if path > max_path:
-                        max_path = path
-        return max_path
+                    ans = max(ans, i-stack[-1])
+
+        return ans
 ```
 
 ## A33. 搜索旋转排序数组
@@ -2007,42 +1938,36 @@ class Solution:
 #### 代码  
 ```python
 class Solution:
-    def helper(self, nums: List[int], i, j, target):
-        if j <= i:
-            return -1
-        n = j - i
-        if n <= 2:
-            for k in range(i, j):
-                if nums[k] == target:
-                    return k
-            return -1
-
-        middle = (i + j) // 2
-
-        if nums[i] < nums[middle]:
-            # 对左边进行二分查找，对右边递归
-            start, end = middle, j
-            j = middle
-        else:
-            # 对右边进行二分查找，对左边递归
-            start, end = i, middle
-            i = middle
-
-        while i <= j and i < len(nums):
-            mid = (i + j) // 2
-            if nums[mid] > target:
-                j = mid - 1
-            elif nums[mid] < target:
-                i = mid + 1
-            else:
-                if nums[mid] == target:
-                    return mid
-
-        return self.helper(nums, start, end, target)
-
-
     def search(self, nums: List[int], target: int) -> int:
-        return self.helper(nums, 0, len(nums), target)
+        def dfs(i, j): 
+            if j - i <= 1:
+                if nums[i] == target: return i
+                if nums[j] == target: return j
+                return -1 
+
+            mid = (i + j) // 2  # 4 7 2
+            if nums[i] < nums[mid]:  # 左边有序
+                idx = bisearch(i, mid)  # 二分左边
+                if idx != -1:
+                    return idx
+                return dfs(mid, j)  # 递归右边
+
+            else:  # 右边有序
+                idx = bisearch(mid, j)  # 二分右边
+                if idx != -1:
+                    return idx
+                return dfs(i, mid)  # # 递归左边
+            # i:mid  , mid:j
+            return -1
+
+        def bisearch(i, j):
+            idx = i + bisect.bisect_left(nums[i: j+1], target)
+            if idx < len(nums) and nums[idx] == target:
+                return idx
+            else:
+                return -1
+
+        return dfs(0, len(nums)-1)
 ```
 
 ## A34. 在排序数组中查找元素的第一个和最后一个位置
@@ -2172,6 +2097,7 @@ class Solution:
 
 #### 思路  
 
+　　这题考察实现`bisect.bisect_left(nums, target)`。  
 
 　　二分查找，如果第`mid`个元素大于`target`，但它前一个元素小于`target`，则返回`i`。  
 
@@ -2179,22 +2105,20 @@ class Solution:
 ```python
 class Solution:
     def searchInsert(self, nums: List[int], target: int) -> int:
-        i, j = 0, len(nums)
-        while i <= j and i < len(nums):
-            mid = (i + j) // 2
-            if nums[mid] > target:
-                if mid == 0 or nums[mid-1] < target:
-                    return mid 
-                j = mid - 1
-            elif nums[mid] < target:
-                if mid == len(nums) - 1 or nums[mid+1] > target:
-                    return mid + 1
-                i = mid + 1
+        i, j = 0, len(nums) - 1
+        while i <= j:
+            mid = (i+j) // 2
+            if nums[mid] < target:
+                i += 1
+            elif nums[mid] > target:
+                j -= 1
             else:
-                if nums[mid] == target:
-                    return mid
-        
-        return -1
+                break
+
+        if nums[mid] >= target:
+            return mid
+        else:
+            return mid + 1
 ```
 
 ## A36. 有效的数独
@@ -2441,25 +2365,22 @@ class Solution:
 
 ```python
 class Solution:
-    dp = ['' for _ in range(31)]
-    dp[0] = '1'
-    for i in range(1, 31):
-        s = dp[i-1]
-        count = 1
-        ans = ''
-        for j in range(1, len(s)):
-            if s[j] == s[j-1]:
-                count += 1
-            else:
-                ans += str(count) + s[j-1]
-                count = 1
-
-        ans += str(count) + s[-1]
-        dp[i] = ans
-
     def countAndSay(self, n: int) -> str:
-        return self.dp[n-1]
+        l = ['', '1']
+        for i in range(n-1):
+            s = l[-1] 
+            count = 1
+            nxt = ''
+            for i, char in enumerate(s):
+                if i == len(s) - 1 or s[i+1] != char:  # 下一个和当前的不一样
+                    nxt += str(count)
+                    nxt += char
+                    count = 1
+                else:
+                    count += 1
+            l.append(nxt)
 
+        return l[n]
 ```
 
 ## A39. 组合总和
@@ -2513,24 +2434,23 @@ class Solution:
 ```python
 class Solution:
     def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
-        candidates.sort()
-        dp = [[] for i in range(target+1)]
-        for num in candidates:
-            if num > target:
-                continue
-            dp[num] = [(num,)]  # 一个数字组成的组合
-            
-        for i in range(1, target+1):
-            for num in candidates:
-                if i-num > 0 and len(dp[i-num])>0:
-                    for combine in dp[i-num]:
-                        a = list(combine)
-                        if num >= a[-1]:  # 确保新的组合是有序的
-                            a.append(num)
-                            if tuple(a) not in dp[i]:
-                                dp[i].append(tuple(a))
+        candidates.sort()  # 123456
+        dp = []
+        for num in range(target+1):
+            temp = [[num]] if num in candidates else []  # 一个数就组成
+            for c in candidates:
+                # 由于候选数是排过序的，如果当前候选数已经大于target，就可以不用算更大的候选数了
+                if num - c <= 0:  
+                    break
+                for prior in dp[num - c]:  # 减去候选的数的组合情况
+                    if c >= prior[-1]:
+                        temp.append(prior + [c])
+
+            dp.append(temp)
 
         return dp[target]
+
+
 ```
 
 ## A40. 组合总和 II
@@ -2578,70 +2498,34 @@ class Solution:
 
 #### 思路  
 
-　　dfs搜索，难点在于去重。  
+　　dfs，需要注意去重。  
 
-　　方法一：用集合来去除重复出现的结果，缺点是效率较低。  
-
-　　方法二：先排序，在每轮的`for`循环中，除了第一个元素外，不会使用和上一个重复的元素。  
+　　先排序，在每轮的`for`循环中，除了第一个元素外，不会使用和上一个重复的元素。  
 
 #### 代码  
 
-　　方法一：
-
 ```python
 class Solution:
     def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
-        ans = set()
-        l = len(candidates)
-        visited = [0 for i in range(l)]
-        def dfs(n, target):
-            nonlocal l
-            if n >= l or candidates[n] > target or visited[n]:
-                return
-            visited[n] = candidates[n]
-            if candidates[n] == target:
-                temp = []
-                for i, vis in enumerate(visited):
-                    if vis:
-                        temp.append(vis)
-                ans.add(tuple(sorted(temp)))
-
-            for i in range(n+1, l):
-                dfs(i, target - candidates[n])
-                visited[i] = 0
-
-        for i in range(l):
-            dfs(i, target)
-            visited[i] = 0
-
-        return [i for i in ans]
-```
-
-　　方法二：
-
-```python
-class Solution:
-    def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
-        candidates.sort()  # [1, 1, 2, 5, 6, 7, 10]
+        candidates.sort()
+        temp = []
         ans = []
-        l = len(candidates)
 
-        def dfs(n, target, cur):
-            nonlocal l
-            for i in range(n, l):
-                if i == n or candidates[i] != candidates[i-1]:  # 除了第一个元素外，不使用重复的
-                    if target < candidates[i]:  # 剪枝
-                        return
-                    elif target == candidates[i]:
-                        ans.append(cur + [candidates[i]])
-                        return
-                    cur.append(candidates[i])
-                    dfs(i+1, target - candidates[i], cur)
-                    cur.remove(candidates[i])
+        def dfs(cur, target):
+            if target < 0: return
+            if target == 0:
+                ans.append(temp.copy())
+                return 
+            for i in range(cur, len(candidates)):
+                if i != cur and candidates[i] == candidates[i-1]:
+                    continue
+                temp.append(candidates[i])
+                dfs(i+1, target - candidates[i])
+                temp.pop()
 
-        dfs(0, target, [])
-
+        dfs(0, target)
         return ans
+
 ```
 
 ## A41. 缺失的第一个正数
@@ -2686,21 +2570,25 @@ class Solution:
 　　4、遇到范围之外的数值，如`-1`或者超过数组长度的值，不交换，继续下一个。  
 　　5、处理之后的数据为`[1, 2, 4, 5]`，再遍历一遍数组，`下标+1`应该是正确值，找出第一个不符合的即可。  
 
-**疑问**：由于在`for`循环里嵌套了`while`，最差情况下的时间复杂度还是`O(n)`吗？
+**想一想**：为什么在`for`循环里嵌套了`while`，时间复杂度还是`O(n)`？
 
 #### 代码  
 ```python
 class Solution:
     def firstMissingPositive(self, nums: List[int]) -> int:
-        for i in range(len(nums)):
-            while nums[i] >= 1 and nums[i] <= len(nums) and nums[i] != nums[nums[i]-1]:
-                nums[nums[i]-1], nums[i] = nums[i], nums[nums[i]-1]
-        
+        n = len(nums)
         for i, num in enumerate(nums):
-            if num != i+1:
-                return i+1
+            while 1 <= num <= n and nums[i] != nums[num-1]:  # 如果不相同就不断交换
+                nums[i], nums[num-1] = nums[num-1], nums[i]
+                num = nums[i]
+            
+        for i in range(1, n+1):
+            if nums[i-1] != i:
+                return i
 
-        return len(nums) + 1
+        return n+1
+
+      
 ```
 
 ## A42. 接雨水 
@@ -2730,34 +2618,37 @@ class Solution:
 #### 思路  
 
 
-　　先遍历一遍`height`，分别找到每个高度`h`的`左侧最高点`和`右侧最高点`，如果min(`左侧最高点`，`右侧最高点`) > h，则可以接雨水。将每个`h`接的雨水数累加。  　　
+　　先遍历一遍数组下标，分别找到每个下标对应的**左侧最高点**和**右侧最高点**。如果地势较为低洼，也就是`height[i]` < `min(左侧最高点，右侧最高点)`，则可以接雨水。将每个下标接的雨水数累加。  　　
 
 #### 代码  
 ```python
 class Solution:
     def trap(self, height: List[int]) -> int:
-        i, j = 0, 0
         n = len(height)
         if n <= 2:
             return 0
-        left_maxes = [0 for i in range(n)]  # 表示左边最高点
-        right_maxes = [0 for i in range(n)]  # 表示右边最高点
-        temp = height[0]
-        for i in range(1, n):
-            left_maxes[i] = temp
-            temp = max(temp, height[i])
-        temp = height[-1]
-        for i in range(n-2, -1, -1):
-            right_maxes[i] = temp
-            temp = max(temp, height[i])
+
+        left_top = [0 for _ in range(n)]  # left_top[i]表示下标i向左看的最高点
+        right_top = [0 for _ in range(n)]  # right_top[i]表示下标i向右看的最高点
+
+        top = height[0] 
+        for i in range(1, n):  # 从左向右遍历
+            left_top[i] = top
+            top = max(top, height[i])
+
+        top = height[-1]
+        for i in range(n-2, -1, -1):  # 从右向左遍历
+            right_top[i] = top
+            top = max(top, height[i])
 
         ans = 0
-        for i in range(1, n-1):  # 第一个和最后一个不可能接雨水
-            h = min(left_maxes[i], right_maxes[i])
-            a = max(h - height[i], 0)
-            ans += a
+        for i in range(1, n-1):
+            if height[i] < min(left_top[i], right_top[i]):
+                ans += min(left_top[i], right_top[i]) - height[i]
 
         return ans
+
+
 ```
 
 ## A44. 通配符匹配
@@ -2933,34 +2824,43 @@ class Solution:
 
 #### 思路  
 
-　　贪心算法，每次都跳到最划算的位置。`数值大的位置`会更加划算，`距离当前位置更远的`也会更加划算。  
+　　贪心算法，在任意一个位置时，下一次跳跃的落点只有**唯一的最优选择**。  
 
-　　设下一个位置与当前位置`i`的距离为`j`，即优化`nums[i + j] + j`最大即可找到下一个位置。  
-　　例如`[2, 3, 1, 1, 4]`。初始`i = 0`，`nums[i] = 2`，能够跳到的两个位置中，`3`的位置偏差为`1`，`1`的位置偏差为`2`；而`3+1 > 1+2`。因此跳到`3`的位置更为划算。  
+　　例如`[2, 3, 1]`，初始位置在`nums[0]`，最远可跳2个单位，有如下的计算法则：  
+
+```python
+cur:    ↓
+num:    2 3 1 
+offset: 0 1 2 
+weight: 2 4 3
+```
+
+　　offset是与当前位置的偏移(因为跳的远一些可以为下一次跳跃节省距离)，`weight`是`num`与`offset`之和，最终落点为`weight`最大的位置。  
 
 #### 代码  
 
 ```python
 class Solution:
     def jump(self, nums: List[int]) -> int:
-        n = len(nums)
-        if n <= 1:
-            return 0
-        i = 0  # 当前位置
-        max_indic = 0  # 记录跳到最划算位置的下标
-        ans = 1
-        while i + nums[i] < n - 1:
-            max_temp = 0
-            num = nums[i]
-            for j in range(1, num + 1):  # 这里的j表示跳到的位置和i的偏差
-                if nums[i + j] + j > max_temp:
-                    max_temp = nums[i + j] + j
-                    max_indic = i + j
-            ans += 1
-            i = max_indic
+        cur = 0
+        times = 0
+        while cur < len(nums) - 1:
+            max_weight = 0
+            nxt = None
+            for i in range(cur + 1, cur + nums[cur] + 1):
+                if i >= len(nums) - 1:
+                    return times + 1
 
-        return ans
-      
+                offset = i - cur
+                weight = nums[i] + offset
+                if weight > max_weight:
+                    max_weight = weight
+                    nxt = i
+
+            times += 1
+            cur = nxt
+
+        return times
 ```
 
 ## A46. 全排列
@@ -3625,8 +3525,8 @@ class Solution:
 
 #### 思路  
 
-　　方法一：用变量`most_far`记录能跳到的最远位置，每次都更新能跳到的最远位置。如果能跳到的最远位置小于当前查找的位置，则跳不到最后。
-　　方法二：从右往左遍历，如果某个位置能走到最后则截断后面的元素。如果某个元素为`0`则从前面找能走到它后面的。方法二比方法一用时短一些。  
+　　方法一：用变量`most_far`记录能跳到的最远位置，每次都更新能跳到的最远位置。如果能跳到的最远位置小于当前查找的位置，则跳不到最后。  
+　　方法二：从右往左遍历，如果某个位置能走到最后则截断后面的元素。如果某个元素为`0`则从前面找能走到它后面的。
 
 #### 代码  
 
@@ -12848,7 +12748,6 @@ class Solution:
         return union - width * height
 
 ```
-
 
 ## A224. 基本计算器
 

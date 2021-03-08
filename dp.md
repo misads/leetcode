@@ -38,7 +38,7 @@
 
 　　如上图所示，假设`dp[i]`=`6`。那么计算`dp[i+1]`时，如果遇到`')'`，会到`pre`(即`i-dp[i]`)的位置寻找`'('`，如果找到了，则`dp[i+1]`=`dp[i]`+`2`=`8`。并且还要把`pre`之前的也考虑上，即`dp[i+1]`+=`dp[pre - 1]`=`8 + 2`=`10`。  
 
-　　方法三：用一个栈记录下标，初始栈为`[-1]`，当前元素为`'('`时入栈，为`')'`时出栈。如果栈为空了则将当前元素下标入栈。  
+　　方法三：① 用一个栈记录下标，栈的第一个元素记录的是起始位置的**前一个**，初始为`[-1]`。② 元素为`'('`时入栈，为`')'`时出栈。③ 如果出栈后栈空了(右括号数多于左括号)则将当前元素下标放在栈的第一个。  
 
 #### 代码  
 
@@ -94,19 +94,18 @@ class Solution:
 class Solution:
     def longestValidParentheses(self, s: str) -> int:
         stack = [-1]
-        max_path = 0
-        for idx,char in enumerate(s):
+        ans = 0
+        for i, char in enumerate(s):
             if char == '(':
-                stack.append(idx)
-            else:
-                stack.pop() #匹配括号出栈
-                if not stack:# 如果没有开始下标
-                    stack.append(idx)
+                stack.append(i)
+            elif char == ')':
+                stack.pop()
+                if not stack:
+                    stack.append(i)
                 else:
-                    path = idx - stack[-1] #保存的开始下标
-                    if path > max_path:
-                        max_path = path
-        return max_path
+                    ans = max(ans, i-stack[-1])
+
+        return ans
 ```
 
 ## A39. 组合总和
@@ -160,24 +159,23 @@ class Solution:
 ```python
 class Solution:
     def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
-        candidates.sort()
-        dp = [[] for i in range(target+1)]
-        for num in candidates:
-            if num > target:
-                continue
-            dp[num] = [(num,)]  # 一个数字组成的组合
-            
-        for i in range(1, target+1):
-            for num in candidates:
-                if i-num > 0 and len(dp[i-num])>0:
-                    for combine in dp[i-num]:
-                        a = list(combine)
-                        if num >= a[-1]:  # 确保新的组合是有序的
-                            a.append(num)
-                            if tuple(a) not in dp[i]:
-                                dp[i].append(tuple(a))
+        candidates.sort()  # 123456
+        dp = []
+        for num in range(target+1):
+            temp = [[num]] if num in candidates else []  # 一个数就组成
+            for c in candidates:
+                # 由于候选数是排过序的，如果当前候选数已经大于target，就可以不用算更大的候选数了
+                if num - c <= 0:  
+                    break
+                for prior in dp[num - c]:  # 减去候选的数的组合情况
+                    if c >= prior[-1]:
+                        temp.append(prior + [c])
+
+            dp.append(temp)
 
         return dp[target]
+
+
 ```
 
 ## A44. 通配符匹配

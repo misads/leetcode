@@ -122,3 +122,61 @@ class Solution:
 
 ```
 
+## A287. 寻找重复数
+
+难度`中等`
+
+#### 题目描述
+
+给定一个包含 *n* + 1 个整数的数组 *nums* ，其数字都在 1 到 *n* 之间（包括 1 和 *n* ），可知至少存在一个重复的整数。假设只有一个重复的整数，找出这个重复的数。
+
+> **示例 1:**
+
+```
+输入: [1,3,4,2,2]
+输出: 2
+```
+
+> **示例 2:**
+
+```
+输入: [3,1,3,4,2]
+输出: 3
+```
+
+**说明：**
+
+1. **不能**更改原数组（假设数组是只读的）。
+2. 只能使用额外的 *O*(1) 的空间。
+3. 时间复杂度小于 *O*(*n*2) 。
+4. 数组中只有一个重复的数字，但它可能不止重复出现一次。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/find-the-duplicate-number/>
+
+#### **思路:**
+
+- 其一，对于链表问题，使用快慢指针可以判断是否有环。
+- 其二，本题可以使用数组配合下标，抽象成链表问题。
+
+　　快慢指针第一次重合后，将快指针也变成慢指针，第二次必然在重复数字处重合。  
+
+#### **代码:**
+
+```python
+class Solution:
+    def findDuplicate(self, nums: List[int]) -> int:
+        fast, slow = 0, 0
+        while True:
+            fast = nums[nums[fast]];  # 快指针一次走2步
+            slow = nums[slow];  # 慢指针一次走1步
+            if slow == fast:
+                fast = 0
+                while slow != fast:
+                    fast = nums[fast]
+                    slow = nums[slow]
+
+                return slow
+
+```

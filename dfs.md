@@ -136,70 +136,34 @@ class Solution:
 
 #### 思路  
 
-　　dfs搜索，难点在于去重。  
+　　dfs，需要注意去重。  
 
-　　方法一：用集合来去除重复出现的结果，缺点是效率较低。  
-
-　　方法二：先排序，在每轮的`for`循环中，除了第一个元素外，不会使用和上一个重复的元素。  
+　　先排序，在每轮的`for`循环中，除了第一个元素外，不会使用和上一个重复的元素。  
 
 #### 代码  
 
-　　方法一：
-
 ```python
 class Solution:
     def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
-        ans = set()
-        l = len(candidates)
-        visited = [0 for i in range(l)]
-        def dfs(n, target):
-            nonlocal l
-            if n >= l or candidates[n] > target or visited[n]:
-                return
-            visited[n] = candidates[n]
-            if candidates[n] == target:
-                temp = []
-                for i, vis in enumerate(visited):
-                    if vis:
-                        temp.append(vis)
-                ans.add(tuple(sorted(temp)))
-
-            for i in range(n+1, l):
-                dfs(i, target - candidates[n])
-                visited[i] = 0
-
-        for i in range(l):
-            dfs(i, target)
-            visited[i] = 0
-
-        return [i for i in ans]
-```
-
-　　方法二：
-
-```python
-class Solution:
-    def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:
-        candidates.sort()  # [1, 1, 2, 5, 6, 7, 10]
+        candidates.sort()
+        temp = []
         ans = []
-        l = len(candidates)
 
-        def dfs(n, target, cur):
-            nonlocal l
-            for i in range(n, l):
-                if i == n or candidates[i] != candidates[i-1]:  # 除了第一个元素外，不使用重复的
-                    if target < candidates[i]:  # 剪枝
-                        return
-                    elif target == candidates[i]:
-                        ans.append(cur + [candidates[i]])
-                        return
-                    cur.append(candidates[i])
-                    dfs(i+1, target - candidates[i], cur)
-                    cur.remove(candidates[i])
+        def dfs(cur, target):
+            if target < 0: return
+            if target == 0:
+                ans.append(temp.copy())
+                return 
+            for i in range(cur, len(candidates)):
+                if i != cur and candidates[i] == candidates[i-1]:
+                    continue
+                temp.append(candidates[i])
+                dfs(i+1, target - candidates[i])
+                temp.pop()
 
-        dfs(0, target, [])
-
+        dfs(0, target)
         return ans
+
 ```
 
 ## A79. 单词搜索

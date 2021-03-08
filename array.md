@@ -76,49 +76,37 @@ nums2 = [3, 4]
 
 #### **思路**
 
-　　将两个数组合并，然后按顺序查找即可。
+　　① 构建一个新函数`findk`，用于查找`nums1`和`nums2`中第`k`小的数。    
+
+　　② 无论数组长度为奇数还是偶数，中位数都可以用第`(n + 1) // 2`小的数和第`(n + 2) // 2`小的数的均值来表示。  
+
+　　③ findk使用二分法查询，来达到`O(log(m + n))`的时间复杂度。  
 
 #### **代码**
 
 ```python
-# encoding=utf-8
-"""
-    执行用时 : 112 ms, 在所有 python3 提交中击败了91.33%的用户
-    内存消耗 : 12.8 MB, 在所有 python3 提交中击败了99.43%的用户
-"""
-def findMedianSortedArrays(nums1: list, nums2: list) -> float:
-    i = 0
-    j = 0
-    l1 = len(nums1)
-    l2 = len(nums2)
-    ans = []
-    while i<l1 and j<l2:
-        x = nums1[i]
-        y = nums2[j]
-        if x<=y:
-            ans.append(x)
-            i+=1
-        else:
-            ans.append(y)
-            j+=1
+class Solution:
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:
+        def findk(nums1, nums2, k):
+            if not nums1: return nums2[k-1]
+            if not nums2: return nums1[k-1]
+            if k == 1: return min(nums1[0], nums2[0])
 
-    if i<l1:
-        ans.extend(nums1[i-l1:])
-    else: 
-        ans.extend(nums2[j-l2:])
+            mid1 = nums1[k // 2 - 1] if k // 2 - 1 < len(nums1) else float('inf')
+            mid2 = nums2[k // 2 - 1] if k // 2 - 1 < len(nums2) else float('inf')
 
-    # print(ans)
-    l = len(ans)
-    if len(ans) %2==1:
-        return ans[l//2]
-    else:
-        return (ans[l//2-1] + ans[l//2])/2
+            if mid1 < mid2:
+                return findk(nums1[k // 2:], nums2, k - k // 2)
+            else:
+                return findk(nums1, nums2[k // 2:], k - k // 2) 
 
+        n = len(nums1) + len(nums2)
+        c1 = (n + 1) // 2
+        c2 = (n + 2) // 2
+        # print(c1, c2)
+        return (findk(nums1, nums2, c1) + findk(nums1, nums2, c2)) / 2
 
-nums2 = [1,2]
-nums1 = [3,4]
-print(findMedianSortedArrays(nums1,nums2))
-
+        
 ```
 
 
@@ -153,53 +141,39 @@ print(findMedianSortedArrays(nums1,nums2))
 
 #### 思路  
 
-　　记录每个数字出现的次数，如果有`多于3次`的0，或者`多于2次`的其他数，则忽略不使用。  
-　　分以下几种情况分别考虑：  
-
-　　0 + 0 + 0 = 0，0 + `一对相反数` = 0， `两个正数` + `一个负数` = 0， `两个负数` + `一个正数` = 0。
+　　记录每个数字出现的次数，多于2个的数只保留2个(可以优化运行速度)。  
+　　将三个数记为`a, b, 0-a-b`，枚举`a`和`b`，然后在counter中检查是否还有`0-a-b`。
 
 #### 代码  
 ```python
 class Solution:
     def threeSum(self, nums: List[int]) -> List[List[int]]:
-        if len(nums) == 0:
-            return []
-        times = {}  # 记录每个数出现的次数，其中0最多出现3次，其他数最多出现2次
-        new_nums = []
         ans = set()
-        for num in nums:
-            if num not in times:
-                times[num] = 1
-                new_nums.append(num)
-            else:
-                if num == 0 and times[num] <= 2:
-                    times[num] += 1
-                    new_nums.append(num)
-                if nums != 0 and times[num] <= 1:
-                    times[num] += 1
-                    new_nums.append(num)
-        
-        new_nums = sorted(new_nums)  # 构建一个新的数组并排序，去掉了冗余的数字
+        count = Counter(nums)
+        temp = []  # 优化，多于2个的数只保留2个
+        for k, v in count.items():
+            temp.append(k)
+            if v >= 2:
+                temp.append(k)
 
-        if 0 in times:
-            if times[0] == 3:  # 3个0的特例
-                ans.add((0, 0, 0))
-            for num in times:
-                if num > 0 and -num in times:  # 0和一对相反数
-                    ans.add((-num, 0, num))
+        n = len(temp)
+        for i in range(n):
+             for j in range(n):
+                if i == j:
+                    continue
+                a = temp[i]
+                b = temp[j]
+                c = 0 - a - b
 
-        for i, num1 in enumerate(new_nums):
-            for j in range(i+1, len(new_nums)):
-                num2 = new_nums[j]
-                if num1 < 0 and num2 < 0 and -num1-num2 in times:  # 两正一负
-                    ans.add((num1, num2, -num1-num2))
-                if num1 > 0 and num2 > 0 and -num1-num2 in times:  # 两负一正
-                    ans.add((-num1-num2, num1, num2))
+                count_c = count[c]
+                if a == c: count_c -= 1
+                if b == c: count_c -= 1
+                if count_c:
+                    ans.add(tuple(sorted([a, b, c])))
 
-        return [i for i in ans]
+        return [list(tp) for tp in ans]
+
 ```
-
-
 
 ## A16. 最接近的三数之和
 
@@ -286,24 +260,24 @@ class Solution:
 #### 思路  
 
 
-　　用python自带的`remove`函数（这个解法很耗时间）。优化时间复杂度的方法可以使用双指针。
+　　用`None`标记重复的数。然后将不是`None`的元素放在最前面。
 
 #### 代码  
 ```python
 class Solution:
     def removeDuplicates(self, nums: List[int]) -> int:
-        shown = set()
-        i = 0
-        while i < len(nums):
-            num = nums[i]
-            if num in shown:
-                nums.remove(num)
-                i -= 1
-            else:
-                shown.add(num)
-            i += 1
+        n = len(nums)
+        for i in range(n-1):
+            if nums[i] == nums[i+1]:
+                nums[i] = None
 
-        return len(nums)
+        cur = 0
+        for i in range(n):
+            if nums[i] is not None:
+                nums[cur] = nums[i]
+                cur += 1
+
+        return cur
 ```
 
 ## A27. 移除元素
@@ -350,18 +324,22 @@ class Solution:
 #### 思路  
 
 
-　　挑战最短代码。
+　　见代码。
 
 #### 代码  
 ```python
 class Solution:
     def removeElement(self, nums: List[int], val: int) -> int:
-        c = nums.count(val)
-        while c:
-            nums.remove(val)
-            c -= 1
-            
-        return len(nums)
+        cur = 0
+        n = len(nums)
+        for i in range(n):
+            if nums[i] == val:
+                pass
+            else:
+                nums[cur] = nums[i]
+                cur += 1
+
+        return cur
 ```
 
 ## A31. 下一个排列
@@ -465,42 +443,36 @@ class Solution:
 #### 代码  
 ```python
 class Solution:
-    def helper(self, nums: List[int], i, j, target):
-        if j <= i:
-            return -1
-        n = j - i
-        if n <= 2:
-            for k in range(i, j):
-                if nums[k] == target:
-                    return k
-            return -1
-
-        middle = (i + j) // 2
-
-        if nums[i] < nums[middle]:
-            # 对左边进行二分查找，对右边递归
-            start, end = middle, j
-            j = middle
-        else:
-            # 对右边进行二分查找，对左边递归
-            start, end = i, middle
-            i = middle
-
-        while i <= j and i < len(nums):
-            mid = (i + j) // 2
-            if nums[mid] > target:
-                j = mid - 1
-            elif nums[mid] < target:
-                i = mid + 1
-            else:
-                if nums[mid] == target:
-                    return mid
-
-        return self.helper(nums, start, end, target)
-
-
     def search(self, nums: List[int], target: int) -> int:
-        return self.helper(nums, 0, len(nums), target)
+        def dfs(i, j): 
+            if j - i <= 1:
+                if nums[i] == target: return i
+                if nums[j] == target: return j
+                return -1 
+
+            mid = (i + j) // 2  # 4 7 2
+            if nums[i] < nums[mid]:  # 左边有序
+                idx = bisearch(i, mid)  # 二分左边
+                if idx != -1:
+                    return idx
+                return dfs(mid, j)  # 递归右边
+
+            else:  # 右边有序
+                idx = bisearch(mid, j)  # 二分右边
+                if idx != -1:
+                    return idx
+                return dfs(i, mid)  # # 递归左边
+            # i:mid  , mid:j
+            return -1
+
+        def bisearch(i, j):
+            idx = i + bisect.bisect_left(nums[i: j+1], target)
+            if idx < len(nums) and nums[idx] == target:
+                return idx
+            else:
+                return -1
+
+        return dfs(0, len(nums)-1)
 ```
 
 ## A34. 在排序数组中查找元素的第一个和最后一个位置
@@ -630,6 +602,7 @@ class Solution:
 
 #### 思路  
 
+　　这题考察实现`bisect.bisect_left(nums, target)`。  
 
 　　二分查找，如果第`mid`个元素大于`target`，但它前一个元素小于`target`，则返回`i`。  
 
@@ -637,22 +610,20 @@ class Solution:
 ```python
 class Solution:
     def searchInsert(self, nums: List[int], target: int) -> int:
-        i, j = 0, len(nums)
-        while i <= j and i < len(nums):
-            mid = (i + j) // 2
-            if nums[mid] > target:
-                if mid == 0 or nums[mid-1] < target:
-                    return mid 
-                j = mid - 1
-            elif nums[mid] < target:
-                if mid == len(nums) - 1 or nums[mid+1] > target:
-                    return mid + 1
-                i = mid + 1
+        i, j = 0, len(nums) - 1
+        while i <= j:
+            mid = (i+j) // 2
+            if nums[mid] < target:
+                i += 1
+            elif nums[mid] > target:
+                j -= 1
             else:
-                if nums[mid] == target:
-                    return mid
-        
-        return -1
+                break
+
+        if nums[mid] >= target:
+            return mid
+        else:
+            return mid + 1
 ```
 
 ## A41. 缺失的第一个正数
@@ -697,21 +668,25 @@ class Solution:
 　　4、遇到范围之外的数值，如`-1`或者超过数组长度的值，不交换，继续下一个。  
 　　5、处理之后的数据为`[1, 2, 4, 5]`，再遍历一遍数组，`下标+1`应该是正确值，找出第一个不符合的即可。  
 
-**疑问**：由于在`for`循环里嵌套了`while`，最差情况下的时间复杂度还是`O(n)`吗？
+**想一想**：为什么在`for`循环里嵌套了`while`，时间复杂度还是`O(n)`？
 
 #### 代码  
 ```python
 class Solution:
     def firstMissingPositive(self, nums: List[int]) -> int:
-        for i in range(len(nums)):
-            while nums[i] >= 1 and nums[i] <= len(nums) and nums[i] != nums[nums[i]-1]:
-                nums[nums[i]-1], nums[i] = nums[i], nums[nums[i]-1]
-        
+        n = len(nums)
         for i, num in enumerate(nums):
-            if num != i+1:
-                return i+1
+            while 1 <= num <= n and nums[i] != nums[num-1]:  # 如果不相同就不断交换
+                nums[i], nums[num-1] = nums[num-1], nums[i]
+                num = nums[i]
+            
+        for i in range(1, n+1):
+            if nums[i-1] != i:
+                return i
 
-        return len(nums) + 1
+        return n+1
+
+      
 ```
 
 ## A42. 接雨水 
@@ -741,34 +716,37 @@ class Solution:
 #### 思路  
 
 
-　　先遍历一遍`height`，分别找到每个高度`h`的`左侧最高点`和`右侧最高点`，如果min(`左侧最高点`，`右侧最高点`) > h，则可以接雨水。将每个`h`接的雨水数累加。  　　
+　　先遍历一遍数组下标，分别找到每个下标对应的**左侧最高点**和**右侧最高点**。如果地势较为低洼，也就是`height[i]` < `min(左侧最高点，右侧最高点)`，则可以接雨水。将每个下标接的雨水数累加。  　　
 
 #### 代码  
 ```python
 class Solution:
     def trap(self, height: List[int]) -> int:
-        i, j = 0, 0
         n = len(height)
         if n <= 2:
             return 0
-        left_maxes = [0 for i in range(n)]  # 表示左边最高点
-        right_maxes = [0 for i in range(n)]  # 表示右边最高点
-        temp = height[0]
-        for i in range(1, n):
-            left_maxes[i] = temp
-            temp = max(temp, height[i])
-        temp = height[-1]
-        for i in range(n-2, -1, -1):
-            right_maxes[i] = temp
-            temp = max(temp, height[i])
+
+        left_top = [0 for _ in range(n)]  # left_top[i]表示下标i向左看的最高点
+        right_top = [0 for _ in range(n)]  # right_top[i]表示下标i向右看的最高点
+
+        top = height[0] 
+        for i in range(1, n):  # 从左向右遍历
+            left_top[i] = top
+            top = max(top, height[i])
+
+        top = height[-1]
+        for i in range(n-2, -1, -1):  # 从右向左遍历
+            right_top[i] = top
+            top = max(top, height[i])
 
         ans = 0
-        for i in range(1, n-1):  # 第一个和最后一个不可能接雨水
-            h = min(left_maxes[i], right_maxes[i])
-            a = max(h - height[i], 0)
-            ans += a
+        for i in range(1, n-1):
+            if height[i] < min(left_top[i], right_top[i]):
+                ans += min(left_top[i], right_top[i]) - height[i]
 
         return ans
+
+
 ```
 
 ## A48. 旋转图像
@@ -938,6 +916,80 @@ class Solution:
                 i += di
                 j += dj
         return r
+```
+
+## A55. 跳跃游戏 
+
+难度 `中等`
+
+#### 题目描述
+
+给定一个非负整数数组，你最初位于数组的第一个位置。
+
+数组中的每个元素代表你在该位置可以跳跃的最大长度。
+
+判断你是否能够到达最后一个位置。
+
+> **示例 1:**
+
+```
+输入: [2,3,1,1,4]
+输出: true
+解释: 我们可以先跳 1 步，从位置 0 到达 位置 1, 然后再从位置 1 跳 3 步到达最后一个位置。
+```
+
+> **示例 2:**
+
+```
+输入: [3,2,1,0,4]
+输出: false
+解释: 无论怎样，你总会到达索引为 3 的位置。但该位置的最大跳跃长度是 0 ， 所以你永远不可能到达最后一个位置。
+```
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/jump-game/>
+
+#### 思路  
+
+　　方法一：用变量`most_far`记录能跳到的最远位置，每次都更新能跳到的最远位置。如果能跳到的最远位置小于当前查找的位置，则跳不到最后。  
+　　方法二：从右往左遍历，如果某个位置能走到最后则截断后面的元素。如果某个元素为`0`则从前面找能走到它后面的。
+
+#### 代码  
+
+　　方法一：
+
+```python
+class Solution:
+    def canJump(self, nums: List[int]) -> bool:
+        n = len(nums)
+        most_far = 0
+        for i in range(n):
+            if most_far < i:
+                return False
+            if i + nums[i] > most_far:
+                most_far = i + nums[i]
+            
+        return True
+```
+
+　　方法二：
+
+```python
+class Solution:
+    def canJump(self, nums: List[int]) -> bool:
+        n = len(nums)
+        if n == 1:
+            return True
+
+        j = 0
+        for i in range(n-2,-1,-1):
+            if nums[i] == 0 or j > 0:  # 出现了或之前出现过0，则每次都加一
+                j += 1
+            if nums[i] >= j:  # 如果当前位置能跳过最后一个0，则归0
+                j = 0
+
+        return j == 0
 ```
 
 ## A56. 合并区间

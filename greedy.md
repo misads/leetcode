@@ -31,108 +31,43 @@
 
 #### 思路  
 
-　　贪心算法，每次都跳到最划算的位置。`数值大的位置`会更加划算，`距离当前位置更远的`也会更加划算。  
+　　贪心算法，在任意一个位置时，下一次跳跃的落点只有**唯一的最优选择**。  
 
-　　设下一个位置与当前位置`i`的距离为`j`，即优化`nums[i + j] + j`最大即可找到下一个位置。  
-　　例如`[2, 3, 1, 1, 4]`。初始`i = 0`，`nums[i] = 2`，能够跳到的两个位置中，`3`的位置偏差为`1`，`1`的位置偏差为`2`；而`3+1 > 1+2`。因此跳到`3`的位置更为划算。  
+　　例如`[2, 3, 1]`，初始位置在`nums[0]`，最远可跳2个单位，有如下的计算法则：  
+
+```python
+cur:    ↓
+num:    2 3 1 
+offset: 0 1 2 
+weight: 2 4 3
+```
+
+　　offset是与当前位置的偏移(因为跳的远一些可以为下一次跳跃节省距离)，`weight`是`num`与`offset`之和，最终落点为`weight`最大的位置。  
 
 #### 代码  
 
 ```python
 class Solution:
     def jump(self, nums: List[int]) -> int:
-        n = len(nums)
-        if n <= 1:
-            return 0
-        i = 0  # 当前位置
-        max_indic = 0  # 记录跳到最划算位置的下标
-        ans = 1
-        while i + nums[i] < n - 1:
-            max_temp = 0
-            num = nums[i]
-            for j in range(1, num + 1):  # 这里的j表示跳到的位置和i的偏差
-                if nums[i + j] + j > max_temp:
-                    max_temp = nums[i + j] + j
-                    max_indic = i + j
-            ans += 1
-            i = max_indic
+        cur = 0
+        times = 0
+        while cur < len(nums) - 1:
+            max_weight = 0
+            nxt = None
+            for i in range(cur + 1, cur + nums[cur] + 1):
+                if i >= len(nums) - 1:
+                    return times + 1
 
-        return ans
-      
-```
+                offset = i - cur
+                weight = nums[i] + offset
+                if weight > max_weight:
+                    max_weight = weight
+                    nxt = i
 
-## A55. 跳跃游戏 
+            times += 1
+            cur = nxt
 
-难度 `中等`
-
-#### 题目描述
-
-给定一个非负整数数组，你最初位于数组的第一个位置。
-
-数组中的每个元素代表你在该位置可以跳跃的最大长度。
-
-判断你是否能够到达最后一个位置。
-
-> **示例 1:**
-
-```
-输入: [2,3,1,1,4]
-输出: true
-解释: 我们可以先跳 1 步，从位置 0 到达 位置 1, 然后再从位置 1 跳 3 步到达最后一个位置。
-```
-
-> **示例 2:**
-
-```
-输入: [3,2,1,0,4]
-输出: false
-解释: 无论怎样，你总会到达索引为 3 的位置。但该位置的最大跳跃长度是 0 ， 所以你永远不可能到达最后一个位置。
-```
-
-#### 题目链接
-
-<https://leetcode-cn.com/problems/jump-game/>
-
-#### 思路  
-
-　　方法一：用变量`most_far`记录能跳到的最远位置，每次都更新能跳到的最远位置。如果能跳到的最远位置小于当前查找的位置，则跳不到最后。
-　　方法二：从右往左遍历，如果某个位置能走到最后则截断后面的元素。如果某个元素为`0`则从前面找能走到它后面的。方法二比方法一用时短一些。  
-
-#### 代码  
-
-　　方法一：
-
-```python
-class Solution:
-    def canJump(self, nums: List[int]) -> bool:
-        n = len(nums)
-        most_far = 0
-        for i in range(n):
-            if most_far < i:
-                return False
-            if i + nums[i] > most_far:
-                most_far = i + nums[i]
-            
-        return True
-```
-
-　　方法二：
-
-```python
-class Solution:
-    def canJump(self, nums: List[int]) -> bool:
-        n = len(nums)
-        if n == 1:
-            return True
-
-        j = 0
-        for i in range(n-2,-1,-1):
-            if nums[i] == 0 or j > 0:  # 出现了或之前出现过0，则每次都加一
-                j += 1
-            if nums[i] >= j:  # 如果当前位置能跳过最后一个0，则归0
-                j = 0
-
-        return j == 0
+        return times
 ```
 
 ## A122. 买卖股票的最佳时机 II

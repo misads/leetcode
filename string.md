@@ -247,7 +247,7 @@ string convert(string s, int numRows) {
 
 #### 思路  
 
-　　感觉这种题意义不大，面向测试用例编程。  
+　　这题建议用C++做，Python由于没有整数范围只能面向测试用例编程。  
 
 #### 代码  
 
@@ -354,7 +354,7 @@ p = "mis*is*p*."
 
 #### 思路  
 
-　　动态规划，类似于[A44. 通配符匹配](/dp?id=a44-通配符匹配)。`dp[i][j]`记录`s[:i]`能否匹配`p[:j]`。  
+　　动态规划。用，`dp[i][j]`记录`s[:i]`能否匹配`p[:j]`。  
 
 　　先处理`s`为空的情况。空字符串能匹配空字符串，另外只有当`p[:j]`为`"a*b*c*.*d*"`这样全是`"?*"`的时候才能匹配空字符串。  
 
@@ -373,33 +373,27 @@ p = "mis*is*p*."
 ```python
 class Solution:
     def isMatch(self, s: str, p: str) -> bool:
-        # dp[i][j] s的前i个 p的前j个
-        ls = len(s)
-        lp = len(p)
-        dp = [[False for _ in range(lp+1)] for _ in range(ls+1)]
-        dp[0][0] = True  # 空匹配空
-        for j in range(1, lp, 2):  # 类似'a*.*'匹配空的s
-            if p[j] == '*':
-                dp[0][j+1] = True
-            else:
-                break
+        np = len(p)
+        ns = len(s)
+        dp = [[False for _ in range(np+1)] for _ in range(ns+1)]
+        # dp[i][j] 表示s[:i]匹配p[:j]
+        dp[0][0] = True
 
-        for i in range(1, ls+1):
-            j = 1
-            while j < lp + 1:
-                if j != lp and p[j] == '*':
-                    if p[j-1] == '.':  # 处理 “.*"
-                        dp[i][j+1] = dp[i-1][j+1] or dp[i][j-1]
-                    else:  # 处理 “a*"
-                        dp[i][j+1] = (dp[i-1][j+1] and s[i-1] == p[j-1]) or dp[i][j-1]
-                    j += 2
-                else:
-                    if p[j-1] == '.':  # 处理 "."
-                        dp[i][j] = dp[i-1][j-1]
-                    else:  # 处理普通字母
-                        dp[i][j] = dp[i-1][j-1] and s[i-1] == p[j-1]
-                    j += 1
-
+        for j in range(1, np+1):
+            if p[j-1] == '*':  # s='' 匹配 p='a*b*c*'
+                dp[0][j] = dp[0][j-2]
+            
+        for i in range(1, ns+1):
+            for j in range(1, np+1):
+                if p[j-1] == '.':  # ab a.
+                    dp[i][j] = dp[i-1][j-1] 
+                elif p[j-1] == '*':
+                    if p[j-2] == '.':  # .*     abcasdad a.*
+                        dp[i][j] = dp[i-1][j] or dp[i][j-2]
+                    else:  # a*  baaaaaaa ba*
+                        dp[i][j] = (s[i-1]==p[j-2] and dp[i-1][j]) or dp[i][j-2]
+                else:  # 字母
+                    dp[i][j] = dp[i-1][j-1] and  s[i-1] == p[j-1]
         # print(dp)
         return dp[-1][-1]
 ```
@@ -637,7 +631,7 @@ class Solution:
 
 #### 思路  
 
-　　先找最短字符的长度`min_l`，然后从`0 ~ min_l`逐列扫描，如果有不同的就退出循环。如下图所示：  
+　　先找最短字符的长度`n`，然后从`0 ~ n`逐列扫描，如果有不同的就退出循环。如下图所示：  
 
 　　<img src="_img/a14.png" style="zoom:40%"/>
 
@@ -646,19 +640,17 @@ class Solution:
 ```python
 class Solution:
     def longestCommonPrefix(self, strs: List[str]) -> str:
-        n = len(strs)
-        if not n: return ''
+        if not strs: return ''
+        n = min([len(s) for s in strs])
+        ans = 0
 
-        minimum = min([len(s) for s in strs])  # 最短的字符长度
-        ans = ''
-        str_0 = strs[0]
-        for i in range(minimum):
-            if all([s[i] == str_0[i] for s in strs]):
-                ans += str_0[i]
-            else:
-                break
-
-        return ans
+        for i in range(n):
+            char = strs[0][i]
+            for s in strs:
+                if s[i] != char:
+                    return strs[0][:i]
+         
+        return strs[0][:n]
       
 ```
 
@@ -698,14 +690,14 @@ class Solution:
 ```python
 class Solution:
     def letterCombinations(self, digits: str) -> List[str]:
-        mapper = ['', '', 'abc', 'def', 'ghi', 'jkl', 'mno', 'pqrs', 'tuv', 'wxyz']
+        f = ['', '', 'abc', 'def', 'ghi', 'jkl', 'mno', 'pqrs', 'tuv', 'wxyz']
         if not digits: return []
         
         ans = ['']
         for digit in digits:
             temp = []
             for a in ans:
-                for alpha in mapper[int(digit)]:  # 下一个数字的所有字母 添加到之前的所有结果上
+                for alpha in f[int(digit)]:  # 下一个数字的所有字母 添加到之前的所有结果上
                     temp.append(a + alpha)
 
             ans = temp
@@ -770,9 +762,9 @@ class Solution:
 
 #### 思路  
 
-　　感觉超出了简单的范围。注意`”([])"`也可以，并不是必须大括号套中括号套小括号。  
-
 　　堆栈，如果为左括号(`{ [ (`)就入栈，如果为右括号则判断能否和`栈顶元素`闭合。  
+
+　　注意`”([])"`也可以，并不是必须大括号套中括号套小括号。 
 
 　　**注意：**字符用完时栈必须为空，否则无效。
 
@@ -781,29 +773,18 @@ class Solution:
 ```python
 class Solution:
     def isValid(self, s: str) -> bool:
-        if not s: return True  # 空的有效
-        mapper = {'(': 1, '[': 2, '{': 3, ')': -1, ']': -2, '}': -3}
-        # 正数压栈 负数出栈
-
         stack = []
-        for c in s:
-
-            if len(stack) == 0:  # 栈为空
-                if mapper[c] < 0: return False
-                stack.append(mapper[c])
+        f = {'(': 1, '[': 2, '{': 3, ')': -1, ']': -2, '}': -3}
+        for char in s:
+            if f[char] > 0:
+                stack.append(f[char])
             else:
-                peek = stack[-1]
-                if mapper[c] > 0:  # 左括号入栈
-                    stack.append(mapper[c])
-                elif mapper[c] == -peek:  # 右括号，和栈顶元素匹配
-                    stack.pop()
-                else:
+                if not stack or stack[-1] + f[char] != 0: 
                     return False
-                
-            # print(stack)
-        return len(stack) == 0  # 最后栈要为空
+                stack.pop()
 
-        
+        return len(stack) == 0
+            
 ```
 
 ## A22. 括号生成
@@ -843,26 +824,31 @@ class Solution:
 ```python
 class Solution:
     def generateParenthesis(self, n: int) -> List[str]:
-        temp = ['.'] * (n * 2)
+        stack = []
+        temp = []
         ans = []
-        # i是当前下标，count_left是左括号的数量
-        def dfs(i, count, count_left):  # "(":count + 1，")": count-1。 
-            nonlocal n
+        def dfs(i):  # 0, n*2-1            
             if i >= n * 2:
-                ans.append(''.join(temp))
+                if len(stack) == 0:
+                    ans.append(''.join(temp))
                 return
-            if count > 0:
-                temp[i] = ')'
-                dfs(i + 1, count - 1, count_left)  #减少count
-                temp[i] = '.'
-            if count_left < n:  # 如果还有左括号
-                temp[i] = '('
-                dfs(i + 1, count + 1, count_left + 1)  # 增加count
-                temp[i] = '.'
 
-        dfs(0, 0, 0)
-        return ans
+            if i <= 2 * n-1:
+                stack.append('(')
+                temp.append('(')
+                dfs(i+1)
+                stack.pop()
+                temp.pop()
 
+            if stack:
+                temp.append(')')
+                stack.pop()
+                dfs(i+1)
+                stack.append('(')
+                temp.pop()
+
+        dfs(0)
+        return ans    
 ```
 
 ## A29. 两数相除
@@ -934,10 +920,7 @@ class Solution:
         ans = max(ans, -2**31 )
 
         return ans
-
 ```
-
-
 
 ## A30. 串联所有单词的子串
 
@@ -977,80 +960,31 @@ class Solution:
 #### 思路  
 
 　　注意题目中单词的长度是`相同的` 。  
-
-　　方法一：暴力，从字符串的每个字母开始遍历，用一个列表记录当前剩余的单词，用递归来匹配。  
-　　方法二：因为`words`中的单词是可以重复的，用一个字典记录`words`中每个单词出现的次数，然后再用递归来匹配。
+　　因为`words`中的单词是可以重复的，用一个字典记录`words`中每个单词出现的次数，然后再用递归来匹配。
 
 #### 代码  
 
-　　**暴力（2272ms）：**
-
 ```python
-sys.setrecursionlimit(100000)
 class Solution:
     def findSubstring(self, s: str, words: List[str]) -> List[int]:
-        # 'abcdefghj'
-        if not s or not len(words): return []
+        ans = []
+        count = Counter(words)
+
         word_len = len(words[0])
-
-        def match(s: str, can_use: List):
-            front_l = s[:word_len]  # s前word_len个字母
-            if len(can_use) == 0: return True
-            if front_l not in can_use:   # 如果可使用列表中没有这个单词
-                return False
-            temp = can_use.copy()
-            temp.remove(front_l)  # 去掉已经用了的单词
-            return match(s[word_len:], temp)
-
-        length = len(words) * word_len
-        ls = len(s)
-        ans = []
-        for i in range(ls - length + 1):
-            s_now = s[i: i + length]
-            if match(s_now, words):
-                ans.append(i)
-
-        return ans
-      
-```
-
-　　**改进（568ms）：**
-
-```python
-sys.setrecursionlimit(100000)
-class Solution:
-    def findSubstring(self, s: str, words: List[str]) -> List[int]:
-        # 'abcdefghj'
-        if not s or not len(words): return []
-        word_len = len(words[0])  # 字典记录每个单词出现的次数
-
-        dict_w = {}
-        for word in words:
-            if word not in dict_w:
-                dict_w[word] = 1
+        n = word_len * len(words)
+        
+        for i in range(len(s) - n + 1):
+            temp = count.copy()
+            sub = s[i: i+n]  # 子串
+            for j in range(0, n, word_len):
+                word = sub[j: j+word_len]  # 把子串拆分成单词
+                if word not in temp or temp[word] == 0:
+                    break
+                temp[word] -= 1
             else:
-                dict_w[word] += 1
-
-        def match(s: str):
-            front_l = s[:word_len]  # s前word_len个字母
-            if len(s) == 0: return True
-            if not dict_w.get(front_l):  # 如果可使用字典中没有这个单词或者已经达到使用次数
-                return False
-            dict_w[front_l] -= 1
-            can_match = match(s[word_len:])
-            dict_w[front_l] += 1  # 返回之前要加回去，这样下一次调用match时dict_w才能保持不变
-            return can_match
-
-        length = len(words) * word_len
-        ls = len(s)
-        ans = []
-        for i in range(ls - length + 1):
-            s_now = s[i: i + length]
-            if match(s_now):
                 ans.append(i)
 
         return ans
-
 ```
 
 ## A38. 外观数列
@@ -1106,25 +1040,22 @@ class Solution:
 
 ```python
 class Solution:
-    dp = ['' for _ in range(31)]
-    dp[0] = '1'
-    for i in range(1, 31):
-        s = dp[i-1]
-        count = 1
-        ans = ''
-        for j in range(1, len(s)):
-            if s[j] == s[j-1]:
-                count += 1
-            else:
-                ans += str(count) + s[j-1]
-                count = 1
-
-        ans += str(count) + s[-1]
-        dp[i] = ans
-
     def countAndSay(self, n: int) -> str:
-        return self.dp[n-1]
+        l = ['', '1']
+        for i in range(n-1):
+            s = l[-1] 
+            count = 1
+            nxt = ''
+            for i, char in enumerate(s):
+                if i == len(s) - 1 or s[i+1] != char:  # 下一个和当前的不一样
+                    nxt += str(count)
+                    nxt += char
+                    count = 1
+                else:
+                    count += 1
+            l.append(nxt)
 
+        return l[n]
 ```
 
 ## A49. 字母异位词分组

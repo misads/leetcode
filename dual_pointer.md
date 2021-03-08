@@ -94,65 +94,26 @@ class Solution:
 
 #### 思路  
 
-　　方法一：用`lefts`记录`heights`从左到右所有比之前最高的还高的线，`rights`记录从右到左所有比之前最高的还高的线。遍历`lefts`和`rights`，其中必有一种组合能够容纳最多的水。  
-　　方法二：双指针，初始时设头指针和尾指针分别为`i`和`j`。我们能够发现不管是左指针向右移动一位，还是右指针向左移动一位，容器的底都是一样的，都比原来减少了 1。这种情况下我们想要让指针移动后的容器面积增大，就要使移动后的容器的高尽量大，所以我们选择指针所指的高较小的那个指针进行移动，这样我们就保留了容器较高的那条边，放弃了较小的那条边，以获得有更高的边的机会。
+　　双指针，初始时设头指针和尾指针分别为`a`和`b`。我们能够发现不管是左指针向右移动一位，还是右指针向左移动一位，容器的底都是一样的，都比原来减少了 1。这种情况下我们想要让指针移动后的容器面积增大，就要使移动后的容器的高尽量大，所以我们选择指针所指的高较小的那个指针进行移动，这样我们就保留了容器较高的那条边，放弃了较小的那条边，以获得有更高的边的机会。
 
 #### 代码  
 
-　　方法一：
-
 ```python
 class Solution:
     def maxArea(self, height: List[int]) -> int:
-        lefts = [0]
-        rights = [len(height)-1]
-        tmp = height[0]
-        for i, num in enumerate(height):
-            if num > tmp: 
-                lefts.append(i)
-                tmp = num
-
-
-        tmp = height[-1]
-        for i in range(len(height)-1,-1,-1):
-            num = height[i]
-            if num > tmp: 
-                rights.append(i)
-                tmp = num
-
-        def calc(i1, i2):
-            return (i2-i1) * (min(height[i1],height[i2]))
-
-        l, r = len(lefts), len(rights)
-        i, j = 0, 0
+        n = len(height)
+        a, b = 0, n-1
         ans = 0
+        while a != b:
+            new = min(height[a], height[b]) * (b-a)
+            ans = max(ans, new)
 
-        for ll in lefts:
-            for rr in rights:
-                temp = calc(ll,rr)
-                if temp > ans:
-                    ans = temp
-        return ans
-```
-
-　　方法二：
-
-```python
-class Solution:
-    def maxArea(self, height: List[int]) -> int:
-        l = len(height)
-        i, j = 0, l - 1
-        ans = 0
-        while i < j:
-            h = min(height[i], height[j])
-            ans = max(ans, h * (j-i))
-            # 指针向所指的高较小的那个指针进行移动
-            if height[i] < height[j]:
-                i += 1
+            if height[a] < height[b]:
+                a += 1
             else:
-                j -= 1
-
+                b -= 1
         return ans
+
 ```
 
 ## A75. 颜色分类
