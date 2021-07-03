@@ -2899,22 +2899,21 @@ class Solution:
 ```python
 class Solution:
     def permute(self, nums: List[int]) -> List[List[int]]:
-        temp = []
         ans = []
-        l = len(nums)
-        def dfs(n):  # 0~2
-            if n > l - 1:
+        temp = []
+        def dfs(cur):  # 0~len()-1
+            if cur >= len(nums):
                 ans.append(temp.copy())
-                return 
+                return
 
             for num in nums:
                 if num in temp:
                     continue
 
                 temp.append(num)
-                dfs(n+1)
-                temp.pop()  # 还原现场
-                
+                dfs(cur+1)
+                temp.pop()
+
         dfs(0)
         return ans
       
@@ -3229,19 +3228,24 @@ class Solution:
 class Solution:
     def solveNQueens(self, n: int) -> List[List[str]]:
         ans = []
-        def recur(queens, sum, differ):  # 递归
-            row = len(queens)
-            if row == n:
-                # print(queens)
-                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in queens])
-                return 
+        def dfs(queens, sums, diffs):  # 和、差
+            cur = len(queens)
+            if cur == n:
+                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in queens])  # 转成输出的格式
+                return
 
-            for i in range(n):  # 处理一行
-                if i not in queens and row + i not in sum and row - i not in differ:
-                    recur(queens + [i], sum + [row + i], differ + [row - i])
-        
-        recur([], [], [])
-        return ans
+            for i in range(n):
+                if i in queens:  # 竖排攻击
+                    continue
+                if cur + i in sums:  # sum攻击
+                    continue
+                if cur - i in diffs:  # diff攻击
+                    continue
+                dfs(queens + [i], sums + [cur+i], diffs + [cur-i])
+
+        dfs([], [], [])
+        return(ans)
+                            
       
 ```
 
@@ -3292,20 +3296,24 @@ class Solution:
 class Solution:
     def totalNQueens(self, n: int) -> int:
         ans = 0
-        def recur(queens, sum, differ):  # 递归
-            nonlocal ans
-            row = len(queens)
-            if row == n:
+        def dfs(queens, sums, diffs):  # 和、差
+            cur = len(queens)
+            if cur == n:
+                nonlocal ans
                 ans += 1
-                return 
+                return
 
-            for i in range(n):  # 处理一行
-                if i not in queens and row + i not in sum and row - i not in differ:
-                    recur(queens + [i], sum + [row + i], differ + [row - i])
-        
-        recur([], [], [])
-        return ans
-      
+            for i in range(n):
+                if i in queens:  # 竖排攻击
+                    continue
+                if cur + i in sums:  # sum攻击
+                    continue
+                if cur - i in diffs:  # diff攻击
+                    continue
+                dfs(queens + [i], sums + [cur+i], diffs + [cur-i])
+
+        dfs([], [], [])
+        return(ans)
 ```
 
 ## A53. 最大子序和
@@ -15235,51 +15243,29 @@ class Solution:
 
 #### 思路  
 
-　　背包🎒问题。  
+　　动态规划中的背包🎒问题。  
 
-　　如果**所有**`amount - coins[i]`所需的最少硬币个数都已知，那么`它们之中的最小值` + 1 就是`amount`所需的最少硬币个数。
+　　先计算出**所有**`amount - coins[i]`所需的最少硬币个数。`amount`所需的最少硬币个数就是它们之中最少的再加上1个硬币。  
 
 #### 代码  
 
-　　写法一：  
-
 ```python
 class Solution:
     def coinChange(self, coins: List[int], amount: int) -> int:
-        ans = [-1 for i in range(amount + 1)]
-        ans[0] = 0
-
-        for i in range(1, amount+1):
-            minimal = float('inf')
-            if ans[i] == -1:
-                for coin in coins:
-                    left = i - coin
-                    if left >= 0:
-                        if ans[left] != -1:
-                            minimal = min(minimal, ans[left] + 1)
-
-                minimal = -1 if minimal == float('inf') else minimal
-
-                ans[i] = minimal
-
-        return ans[amount]
-```
-
-　　写法二：
-
-```python
-class Solution:
-    def coinChange(self, coins: List[int], amount: int) -> int:
-        inf = float('inf')
-        dp = [inf for i in range(amount + 1)]
+        dp = [float('inf') for _ in range(amount+1)]
+        coins.sort()
         dp[0] = 0
 
         for i in range(1, amount+1):
-            all_i_use_coins = [dp[i - coin] for coin in filter(lambda x: x <= i, coins)] + [inf]  # 加一个inf 防止为空
-            dp[i] = min(all_i_use_coins) + 1
+            for one_coin in coins:
+                if one_coin > amount:
+                    break
+                dp[i] = min(dp[i], dp[i - one_coin] + 1)
 
-        if dp[amount] == inf: return -1
-        return dp[amount]
+        if dp[-1] == float('inf'):
+            return -1
+        return dp[-1]
+
 ```
 
 　## A324. 摆动排序 II

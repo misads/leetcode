@@ -37,22 +37,21 @@
 ```python
 class Solution:
     def permute(self, nums: List[int]) -> List[List[int]]:
-        temp = []
         ans = []
-        l = len(nums)
-        def dfs(n):  # 0~2
-            if n > l - 1:
+        temp = []
+        def dfs(cur):  # 0~len()-1
+            if cur >= len(nums):
                 ans.append(temp.copy())
-                return 
+                return
 
             for num in nums:
                 if num in temp:
                     continue
 
                 temp.append(num)
-                dfs(n+1)
-                temp.pop()  # 还原现场
-                
+                dfs(cur+1)
+                temp.pop()
+
         dfs(0)
         return ans
       
@@ -166,19 +165,24 @@ class Solution:
 class Solution:
     def solveNQueens(self, n: int) -> List[List[str]]:
         ans = []
-        def recur(queens, sum, differ):  # 递归
-            row = len(queens)
-            if row == n:
-                # print(queens)
-                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in queens])
-                return 
+        def dfs(queens, sums, diffs):  # 和、差
+            cur = len(queens)
+            if cur == n:
+                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in queens])  # 转成输出的格式
+                return
 
-            for i in range(n):  # 处理一行
-                if i not in queens and row + i not in sum and row - i not in differ:
-                    recur(queens + [i], sum + [row + i], differ + [row - i])
-        
-        recur([], [], [])
-        return ans
+            for i in range(n):
+                if i in queens:  # 竖排攻击
+                    continue
+                if cur + i in sums:  # sum攻击
+                    continue
+                if cur - i in diffs:  # diff攻击
+                    continue
+                dfs(queens + [i], sums + [cur+i], diffs + [cur-i])
+
+        dfs([], [], [])
+        return(ans)
+                            
       
 ```
 
@@ -229,20 +233,24 @@ class Solution:
 class Solution:
     def totalNQueens(self, n: int) -> int:
         ans = 0
-        def recur(queens, sum, differ):  # 递归
-            nonlocal ans
-            row = len(queens)
-            if row == n:
+        def dfs(queens, sums, diffs):  # 和、差
+            cur = len(queens)
+            if cur == n:
+                nonlocal ans
                 ans += 1
-                return 
+                return
 
-            for i in range(n):  # 处理一行
-                if i not in queens and row + i not in sum and row - i not in differ:
-                    recur(queens + [i], sum + [row + i], differ + [row - i])
-        
-        recur([], [], [])
-        return ans
-      
+            for i in range(n):
+                if i in queens:  # 竖排攻击
+                    continue
+                if cur + i in sums:  # sum攻击
+                    continue
+                if cur - i in diffs:  # diff攻击
+                    continue
+                dfs(queens + [i], sums + [cur+i], diffs + [cur-i])
+
+        dfs([], [], [])
+        return(ans)
 ```
 
 ## A60. 第k个排列

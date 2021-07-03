@@ -394,20 +394,19 @@ class Solution:
 
 ```python
 class Solution:
-    
     def maxSubArray(self, nums: List[int]) -> int:
-        n = len(nums)
-        if n == 1:
-            return nums[0]
-        ans = m_i = nums[0]  # 以某个结点为最后一个元素的最大子序和
-        for i in range(1, n):
-            num = nums[i]
-            # 更新下一个i的m_i
-            if m_i <= 0:
-                m_i = num
+        if max(nums) < 0:  # 所有数都是负的
+            return max(nums)
+
+        ans = 0
+        dp = [0 for _ in range(len(nums))]
+        for i, num in enumerate(nums):
+            if i == 0:
+                dp[i] = max(0, num)
             else:
-                m_i += num
-            ans = max(ans, m_i)
+                dp[i] = max(dp[i-1] + num, 0)
+            ans = max(ans, dp[i])
+
         return ans
 
 ```
@@ -489,20 +488,7 @@ class Solution:
 ```python
 class Solution:
     def uniquePaths(self, m: int, n: int) -> int:
-        def factor(num):
-            if num < 2:
-                return 1
-            res = 1
-            for i in range(1, num+1):
-                res *= i
-            return res
-
-        def A(m, n):
-            return factor(m) // factor(m-n)
-
-        def C(m, n):
-            return A(m, n) // factor(n)
-
+        C = math.comb
         return C(m+n-2,m-1)
          
 ```
@@ -2216,7 +2202,7 @@ class Solution:
 
 　　**方法一：**用一个辅助数组`orders`记录以每个数为最大的数字时，最长上升子序列的长度。如示例中`[10,9,2,5,3,7,101,18]`对应的`orders=[1,1,1,2,1,3,4,4]` 。  
 　　初始状态`orders`全为`1`，统计`nums`中某个数字之前所有比它小的数字的`orders`的最大值 + 1即为`order[i]`新的值。复杂度为`O(n^2)` 。  
-　　**方法二：**维护一个`升序的`结果数组`results`。如果`num`大于结果数组中的所有元素，就将`num`插入到结果数组的最后。否则用`num`替换`results`中第一个大于等于`num`的数。  
+　　**方法二：**维护一个**升序的**结果数组`asc`。如果`num`大于结果数组中的所有元素，就将`num`插入到结果数组的最后。否则用`num`替换`results`中第一个大于等于`num`的数。  
 　　最终`results`的长度即为结果。复杂度为`O(nlogn)`。  
 
 #### 代码  
@@ -2255,22 +2241,17 @@ class Solution:
 ```python
 class Solution:
     def lengthOfLIS(self, nums: List[int]) -> int:
-        if len(nums) == 0:
-            return 0
-
-        results = []
+        asc = []
         for num in nums:
-            if len(results) == 0 or num > results[-1]:
-                results.append(num)
-            else:
-                for i, re in enumerate(results):
-                    if re >= num:
-                        results[i] = num
-                        break
+            if not asc or num > asc[-1]:
+                asc.append(num)
+                continue
+            if num not in asc:
+                idx = bisect.bisect_left(asc, num) 
+                asc[idx] = num
 
-        print(results)
-        return len(results)
-
+        print(asc)
+        return len(asc)
 ```
 
 ## A303. 区域和检索 - 数组不可变
@@ -2702,51 +2683,29 @@ class Solution:
 
 #### 思路  
 
-　　背包🎒问题。  
+　　动态规划中的背包🎒问题。  
 
-　　如果**所有**`amount - coins[i]`所需的最少硬币个数都已知，那么`它们之中的最小值` + 1 就是`amount`所需的最少硬币个数。
+　　先计算出**所有**`amount - coins[i]`所需的最少硬币个数。`amount`所需的最少硬币个数就是它们之中最少的再加上1个硬币。  
 
 #### 代码  
 
-　　写法一：  
-
 ```python
 class Solution:
     def coinChange(self, coins: List[int], amount: int) -> int:
-        ans = [-1 for i in range(amount + 1)]
-        ans[0] = 0
-
-        for i in range(1, amount+1):
-            minimal = float('inf')
-            if ans[i] == -1:
-                for coin in coins:
-                    left = i - coin
-                    if left >= 0:
-                        if ans[left] != -1:
-                            minimal = min(minimal, ans[left] + 1)
-
-                minimal = -1 if minimal == float('inf') else minimal
-
-                ans[i] = minimal
-
-        return ans[amount]
-```
-
-　　写法二：
-
-```python
-class Solution:
-    def coinChange(self, coins: List[int], amount: int) -> int:
-        inf = float('inf')
-        dp = [inf for i in range(amount + 1)]
+        dp = [float('inf') for _ in range(amount+1)]
+        coins.sort()
         dp[0] = 0
 
         for i in range(1, amount+1):
-            all_i_use_coins = [dp[i - coin] for coin in filter(lambda x: x <= i, coins)] + [inf]  # 加一个inf 防止为空
-            dp[i] = min(all_i_use_coins) + 1
+            for one_coin in coins:
+                if one_coin > amount:
+                    break
+                dp[i] = min(dp[i], dp[i - one_coin] + 1)
 
-        if dp[amount] == inf: return -1
-        return dp[amount]
+        if dp[-1] == float('inf'):
+            return -1
+        return dp[-1]
+
 ```
 
 ## A338. 比特位计数
