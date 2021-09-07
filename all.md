@@ -1823,7 +1823,7 @@ class Solution:
 
 <img src="_img/a32.png" style="zoom:40%"/>
 
-　　如上图所示，假设`dp[i]`=`6`。那么计算`dp[i+1]`时，如果遇到`')'`，会到`pre`(即`i-dp[i]`)的位置寻找`'('`，如果找到了，则`dp[i+1]`=`dp[i]`+`2`=`8`。并且还要把`pre`之前的也考虑上，即`dp[i+1]`+=`dp[pre - 1]`=`8 + 2`=`10`。  
+　　如上图所示，假设`dp[i]`=`6`。那么计算`dp[i+1]`时，如果遇到`')'`，会看`pre`(即`i-dp[i]`)的位置是不是`'('`，如果是，则`dp[i+1]`=`dp[i]`+`2`=`8`。并且还要把`pre`之前的也考虑上，即`dp[i+1]`+=`dp[pre - 1]`=`8 + 2`=`10`。  
 
 　　方法三：① 用一个栈记录下标，栈的第一个元素记录的是起始位置的**前一个**，初始为`[-1]`。② 元素为`'('`时入栈，为`')'`时出栈。③ 如果出栈后栈空了(右括号数多于左括号)则将当前元素下标放在栈的第一个。  
 
@@ -1860,17 +1860,14 @@ class Solution:
 class Solution:
     def longestValidParentheses(self, s: str) -> int:
         n = len(s)
-        if n == 0:
-            return 0
-        dp = [0 for i in range(n)]
+        dp = [0 for _ in range(n+1)]  # dp[i] 表示s[:i]
+        s = '#' + s
         for i in range(1, n):
-            char = s[i]
-            if char == ')':
-                pre = i - dp[i-1] -1
-                if pre >= 0 and s[pre] == '(':
-                    dp[i] = dp[i-1] + 2
-                    if pre > 0:
-                        dp[i] += dp[pre - 1]
+            if s[i+1] == '(':
+                continue
+
+            if s[i- dp[i]] == '(':
+                dp[i+1] = dp[i] + 2 + dp[i-dp[i]-1]
 
         return max(dp)
 ```
@@ -2434,22 +2431,24 @@ class Solution:
 ```python
 class Solution:
     def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
-        candidates.sort()  # 123456
-        dp = []
-        for num in range(target+1):
-            temp = [[num]] if num in candidates else []  # 一个数就组成
+        dp = [[] for _ in range(target+1)]
+        candidates.sort()
+        for i in range(1, target+1):
+            temp = []
             for c in candidates:
-                # 由于候选数是排过序的，如果当前候选数已经大于target，就可以不用算更大的候选数了
-                if num - c <= 0:  
+                if i - c < 0:
                     break
-                for prior in dp[num - c]:  # 减去候选的数的组合情况
-                    if c >= prior[-1]:
-                        temp.append(prior + [c])
+                if i - c == 0:
+                    temp.append([c])  # 一个数
+                    continue
+                if len(dp[i-c]):
+                    for combine in dp[i-c]:  # dp[i-c]的组合方式
+                        if c >= combine[-1]:
+                            temp.append(combine+[c])
 
-            dp.append(temp)
+            dp[i] = temp
 
         return dp[target]
-
 
 ```
 
@@ -2843,24 +2842,27 @@ weight: 2 4 3
 class Solution:
     def jump(self, nums: List[int]) -> int:
         cur = 0
-        times = 0
-        while cur < len(nums) - 1:
-            max_weight = 0
-            nxt = None
-            for i in range(cur + 1, cur + nums[cur] + 1):
-                if i >= len(nums) - 1:
-                    return times + 1
+        ans = 0
+        n = len(nums)
+        while True:
+            next_pos = 0
+            most_far = 0
+            if cur >= n - 1:
+                return ans
 
-                offset = i - cur
-                weight = nums[i] + offset
-                if weight > max_weight:
-                    max_weight = weight
-                    nxt = i
+            for i in range(1, nums[cur]+1): 
+                # 10 8 - - - - 4 - - -
+                #    0 1 2 3 4 5 6 7 8
+                # ======================
+                #    8 - - - - 9 - - - 
+                if cur + i >= n - 1:
+                    return ans + 1
+                if nums[cur+i] + i > most_far:
+                    next_pos = cur + i
+                    most_far = nums[cur+i] + i
 
-            times += 1
-            cur = nxt
-
-        return times
+            cur = next_pos
+            ans += 1
 ```
 
 ## A46. 全排列
@@ -2892,9 +2894,13 @@ class Solution:
 
 #### **思路:**
 
-　　dfs。  
+　　方法一： dfs。  
+
+　　方法一： 回溯。  
 
 #### **代码:**
+
+　　**方法一：**
 
 ```python
 class Solution:
@@ -2917,6 +2923,23 @@ class Solution:
         dfs(0)
         return ans
       
+```
+
+　　**方法二：**
+
+```python
+class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        ans = []
+        def bt(nums, temp):
+            if not nums:
+                ans.append(temp)
+
+            for i, num in enumerate(nums):
+                bt(nums[:i]+nums[i+1:], temp + [num])
+
+        bt(nums, [])
+        return ans
 ```
 
 ## A47. 全排列 II
@@ -2945,9 +2968,34 @@ class Solution:
 
 #### **思路:**
 
-　　dfs + 集合去重。  
+　　方法一：回溯。
+
+　　方方法二：dfs + 集合去重。  
 
 #### **代码:**
+
+　　**方法一：**
+
+```python
+class Solution:
+    def permuteUnique(self, nums: List[int]) -> List[List[int]]:
+        # 1 1 1 2 2 3
+        ans = []
+        def bt(nums, temp):
+            if not nums:
+                ans.append(temp)
+            for i, num in enumerate(nums):
+                if i != 0 and num == nums[i-1]:  # 去重
+                    continue
+
+                bt(nums[:i]+nums[i+1:], temp+[num])
+
+        nums.sort()
+        bt(nums, [])
+        return ans
+```
+
+　　**方法二：**
 
 ```python
 class Solution:
@@ -3228,24 +3276,22 @@ class Solution:
 class Solution:
     def solveNQueens(self, n: int) -> List[List[str]]:
         ans = []
-        def dfs(queens, sums, diffs):  # 和、差
-            cur = len(queens)
-            if cur == n:
-                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in queens])  # 转成输出的格式
+        def bt(nums, sums, diffs):
+            line = len(nums)
+            if line == n:
+                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in nums])
                 return
-
             for i in range(n):
-                if i in queens:  # 竖排攻击
+                if i in nums:
                     continue
-                if cur + i in sums:  # sum攻击
+                if line + i in sums:
                     continue
-                if cur - i in diffs:  # diff攻击
+                if line - i in diffs:
                     continue
-                dfs(queens + [i], sums + [cur+i], diffs + [cur-i])
+                bt(nums + [i], sums + [line+i], diffs + [line-i])
 
-        dfs([], [], [])
-        return(ans)
-                            
+        bt([], [], [])
+        return ans     
       
 ```
 
@@ -3390,22 +3436,20 @@ class Solution:
 
 ```python
 class Solution:
-    
     def maxSubArray(self, nums: List[int]) -> int:
         n = len(nums)
-        if n == 1:
-            return nums[0]
-        ans = m_i = nums[0]  # 以某个结点为最后一个元素的最大子序和
-        for i in range(1, n):
-            num = nums[i]
-            # 更新下一个i的m_i
-            if m_i <= 0:
-                m_i = num
-            else:
-                m_i += num
-            ans = max(ans, m_i)
-        return ans
+        dp = [0 for _ in range(n)]
+        dp[0] = nums[0]
 
+        for i, num in enumerate(nums):
+            if i == 0:
+                continue
+            if dp[i-1] < 0:
+                dp[i] = num
+            else:
+                dp[i] = num + dp[i-1]
+
+        return max(dp)
 ```
 
 ## A54. 螺旋矩阵
@@ -3543,14 +3587,14 @@ class Solution:
 ```python
 class Solution:
     def canJump(self, nums: List[int]) -> bool:
-        n = len(nums)
         most_far = 0
+        n = len(nums)
         for i in range(n):
-            if most_far < i:
+            if i > most_far:  # 这个位置比most_far还远
                 return False
-            if i + nums[i] > most_far:
-                most_far = i + nums[i]
-            
+
+            most_far = max(most_far, i+nums[i])
+
         return True
 ```
 
@@ -4012,20 +4056,7 @@ class Solution:
 ```python
 class Solution:
     def uniquePaths(self, m: int, n: int) -> int:
-        def factor(num):
-            if num < 2:
-                return 1
-            res = 1
-            for i in range(1, num+1):
-                res *= i
-            return res
-
-        def A(m, n):
-            return factor(m) // factor(m-n)
-
-        def C(m, n):
-            return A(m, n) // factor(n)
-
+        C = math.comb
         return C(m+n-2,m-1)
          
 ```
@@ -4750,30 +4781,28 @@ exection -> execution (插入 'u')
 #### 代码  
 
 ```python
-class Solution(object):
-    def minDistance(self, word1, word2):
-        """
-        :type word1: str
-        :type word2: str
-        :rtype: int
-        """
-        # word1[i] word2[j]
-        # dp[i][j] 表示 word1[i] 变成 word2[j]的最少操作数
-        l1, l2 = len(word1), len(word2)
-        dp = [[0 for j in range(l2+1)]for i in range(l1+1)]
-        for i in range(l1+1):
-            for j in range(l2+1):
-                if i == 0:
-                    dp[i][j] = j
-                elif j == 0:
-                    dp[i][j] = i
+class Solution:
+    def minDistance(self, word1: str, word2: str) -> int:
+        l1 = len(word1)
+        l2 = len(word2)
+        dp = [[float('inf') for _ in range(l2+1)] for _ in range(l1+1)]  # dp[i][j] 表示word1[:i]标为word2[:j]的最少编辑次数
+        dp[0][0] = 0
+        for i in range(1, l1+1):
+            dp[i][0] = i
+        for j in range(1, l2+1):
+            dp[0][j] = j
+
+        for i in range(1, l1+1):
+            for j in range(1, l2+1):
+                if word1[i-1] == word2[j-1]:  # 最后一个字母相同
+                    dp[i][j] = dp[i-1][j-1]
                 else:
-                    if word1[i-1] == word2[j-1]:
-                        dp[i][j] = dp[i-1][j-1]
-                    else:
-                        dp[i][j] = min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]) + 1
-        # print(dp)
-        return dp[-1][-1]
+                    dp[i][j] = dp[i-1][j-1] + 1  # 最后一个字母不同
+
+                dp[i][j] = min(dp[i][j], dp[i][j-1] + 1)  # 增加一个
+                dp[i][j] = min(dp[i][j], dp[i-1][j] + 1)  # 删除一个
+
+        return dp[l1][l2]
 ```
 
 ## A73. 矩阵置零
@@ -5068,37 +5097,38 @@ class Solution:
 #### 代码  
 
 ```python
-from collections import defaultdict
-
-class Solution(object):
-    def minWindow(self, s, t):
-        mem = defaultdict(int)
-        for char in t:  #  统计t每个字母的出现次数
-            mem[char] -= 1  # 负的表示缺的，正的表示多余的
-
-        count = len(t)
+class Solution:
+    def minWindow(self, s: str, t: str) -> str:
+        count = defaultdict(int)
+        count.update(Counter(t))
+        for k in count:
+            count[k] = -count[k]
 
         left = 0
-        min_i, min_j = 0, len(s)
+        score = len(t)
+        ans = '#' * (len(s) + 1)
+        
         for right, char in enumerate(s):
-            if mem[char] < 0:
-                count -= 1
-            mem[char] += 1
-
-            if count == 0:  # 成功匹配
-                while mem[s[left]] > 0:  # 把左边多余的去掉 然后再计算 min max
-                    mem[s[left]] -= 1
+            if count[char] < 0:
+                score -= 1
+            count[char] += 1
+            if score == 0:
+                while count[s[left]] > 0:
+                    count[s[left]] -= 1
                     left += 1
+                    
+                if len(s[left:right+1]) < len(ans):
+                    ans = s[left:right+1]
 
-                if right - left < min_j - min_i:
-                    min_i, min_j = left, right
-
-                mem[s[left]] -= 1
+                count[s[left]] -= 1
                 left += 1
-                count += 1
+                score += 1
 
-        return '' if min_j == len(s) else s[min_i:min_j + 1]
+        if len(ans) > len(s):
+            ans = ''
+        return ans
 
+        
 ```
 
 ## A77. 组合
@@ -5570,26 +5600,22 @@ class Solution:
 ```python
 class Solution:
     def largestRectangleArea(self, heights: List[int]) -> int:
-        n = len(heights)
-        if n == 0:
-            return 0
-
-        s = [-1]
+        asc = [-1]
         heights.append(0)
+        n = len(heights)
         ans = 0
-        for i, h in enumerate(heights):
-            while len(s) >= 2 and h <= heights[s[-1]]:  # 出栈
-                last = s.pop()  
-                before = s[-1]
-                w = i - before - 1
-                ans = max(ans, heights[last] * w)
-                # print('出栈', heights[last], '宽度', w)
+        for i in range(n):
+            height = heights[i]
+            while len(asc) >= 1 and height < heights[asc[-1]]:
+                j = asc.pop()
+                h = heights[j]
+                # print(h, i - asc[-1] - 1)
+                ans = max(ans, h * (i - asc[-1] - 1))
 
-            if len(s)==0 or h >= heights[s[-1]]:  # 入栈
-                s.append(i)
-                # print('入栈', heights[i])
+            asc.append(i)
 
         return ans
+            
 ```
 
 ## A85. 最大矩形
@@ -14325,7 +14351,7 @@ class Solution:
 
 　　**方法一：**用一个辅助数组`orders`记录以每个数为最大的数字时，最长上升子序列的长度。如示例中`[10,9,2,5,3,7,101,18]`对应的`orders=[1,1,1,2,1,3,4,4]` 。  
 　　初始状态`orders`全为`1`，统计`nums`中某个数字之前所有比它小的数字的`orders`的最大值 + 1即为`order[i]`新的值。复杂度为`O(n^2)` 。  
-　　**方法二：**维护一个`升序的`结果数组`results`。如果`num`大于结果数组中的所有元素，就将`num`插入到结果数组的最后。否则用`num`替换`results`中第一个大于等于`num`的数。  
+　　**方法二：**维护一个**升序的**结果数组`asc`。如果`num`大于结果数组中的所有元素，就将`num`插入到结果数组的最后。否则用`num`替换`results`中第一个大于等于`num`的数。  
 　　最终`results`的长度即为结果。复杂度为`O(nlogn)`。  
 
 #### 代码  
@@ -14364,22 +14390,17 @@ class Solution:
 ```python
 class Solution:
     def lengthOfLIS(self, nums: List[int]) -> int:
-        if len(nums) == 0:
-            return 0
-
-        results = []
+        asc = []
         for num in nums:
-            if len(results) == 0 or num > results[-1]:
-                results.append(num)
-            else:
-                for i, re in enumerate(results):
-                    if re >= num:
-                        results[i] = num
-                        break
+            if not asc or num > asc[-1]:
+                asc.append(num)
+                continue
+            if num not in asc:
+                idx = bisect.bisect_left(asc, num) 
+                asc[idx] = num
 
-        print(results)
-        return len(results)
-
+        print(asc)
+        return len(asc)
 ```
 
 ## A301. 删除无效的括号
@@ -14795,9 +14816,35 @@ class Solution:
 max_coin_k = 1 * nums[k] * 1 + dp(i,k) + dp(k,j)
 ```
 
-　　递归地计算`dp(i,k)`和`dp(k,j)`，找到倒数第二个被戳破的气球。。以此类推。  
+　　要计算`dp[i][j]`，选取一个要戳破的气球🎈`k ∈ [i+1, j-1]`，此时能获得的硬币为`nums[i] * nums[k] * nums[j] + dp(i,k) + dp(k,j)`。如下面的表达式所示：  
+
+```tex
+\displaystyle dp[i][j] = \max_{k\in[i+1, j-1]} nums[i] \times nums[k] \times nums[j]+dp[i][k]+dp[k][j]
+```
 
 #### 代码  
+
+　　dp:
+
+```python
+class Solution:
+    def maxCoins(self, nums: List[int]) -> int:
+        n = len(nums)
+        nums = [1] + nums + [1]
+        dp = [[0 for _ in range(n+2)] for _ in range(n+2)]
+
+        for distance in range(2, n+2):
+            for i in range(0, n-distance+2):  # distance=3, j=0
+                j = i + distance
+                for chuo in range(i+1, j):  # 戳的哪个
+                    dp[i][j] = max(dp[i][j], nums[i]*nums[chuo]*nums[j] + dp[i][chuo] + dp[chuo][j]) 
+
+        return dp[0][n+1]
+            
+```
+
+　　lru_cache:
+
 ```python
 class Solution:
     def maxCoins(self, nums: List[int]) -> int:
@@ -21464,6 +21511,93 @@ class Solution:
             
         return ans
       
+```
+
+## A1143. 最长公共子序列
+
+难度`中等`
+
+#### 题目描述
+
+给定两个字符串 `text1` 和 `text2`，返回这两个字符串的最长 **公共子序列** 的长度。如果不存在 **公共子序列** ，返回 `0` 。
+
+一个字符串的 **子序列** 是指这样一个新的字符串：它是由原字符串在不改变字符的相对顺序的情况下删除某些字符（也可以不删除任何字符）后组成的新字符串。
+
+- 例如，`"ace"` 是 `"abcde"` 的子序列，但 `"aec"` 不是 `"abcde"` 的子序列。
+
+两个字符串的 **公共子序列** 是这两个字符串所共同拥有的子序列。
+
+> **示例 1：**
+
+```
+输入：text1 = "abcde", text2 = "ace" 
+输出：3  
+解释：最长公共子序列是 "ace" ，它的长度为 3 。
+```
+
+> **示例 2：**
+
+```
+输入：text1 = "abc", text2 = "abc"
+输出：3
+解释：最长公共子序列是 "abc" ，它的长度为 3 。
+```
+
+> **示例 3：**
+
+```
+输入：text1 = "abc", text2 = "def"
+输出：0
+解释：两个字符串没有公共子序列，返回 0 。
+```
+
+**提示：**
+
+- `1 <= text1.length, text2.length <= 1000`
+- `text1` 和 `text2` 仅由小写英文字符组成。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/longest-common-subsequence/>
+
+#### **思路:**
+
+　　动态规划，令`dp[i][j]`表示`text1[:i]`和`text2[:j]`的最长公共子序列，有递推公式：
+
+　　**text1[i-1] == text2[j-1]**时：
+
+```tex
+　　dp[i][j] = dp[i-1][j-1] + 1
+```
+
+　　**text1[i-1] != text2[j-1]**时：　　
+
+```tex
+　　dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+```
+
+#### **代码:**
+
+```python
+class Solution(object):
+    def longestCommonSubsequence(self, text1, text2):
+        """
+        :type text1: str
+        :type text2: str
+        :rtype: int
+        """
+        m = len(text1)
+        n = len(text2)
+        dp = [[0 for _ in range(n + 1)] for _ in range(m + 1)]  
+        # dp[i][j] 表示text1[:i]和text2[:j]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if text1[i-1] == text2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+
+        return dp[-1][-1]
 ```
 
 ## A1248. 统计「优美子数组」

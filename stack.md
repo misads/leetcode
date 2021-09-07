@@ -59,26 +59,22 @@
 ```python
 class Solution:
     def largestRectangleArea(self, heights: List[int]) -> int:
-        n = len(heights)
-        if n == 0:
-            return 0
-
-        s = [-1]
+        asc = [-1]
         heights.append(0)
+        n = len(heights)
         ans = 0
-        for i, h in enumerate(heights):
-            while len(s) >= 2 and h <= heights[s[-1]]:  # 出栈
-                last = s.pop()  
-                before = s[-1]
-                w = i - before - 1
-                ans = max(ans, heights[last] * w)
-                # print('出栈', heights[last], '宽度', w)
+        for i in range(n):
+            height = heights[i]
+            while len(asc) >= 1 and height < heights[asc[-1]]:
+                j = asc.pop()
+                h = heights[j]
+                # print(h, i - asc[-1] - 1)
+                ans = max(ans, h * (i - asc[-1] - 1))
 
-            if len(s)==0 or h >= heights[s[-1]]:  # 入栈
-                s.append(i)
-                # print('入栈', heights[i])
+            asc.append(i)
 
         return ans
+            
 ```
 
 ## A85. 最大矩形

@@ -50,24 +50,27 @@ weight: 2 4 3
 class Solution:
     def jump(self, nums: List[int]) -> int:
         cur = 0
-        times = 0
-        while cur < len(nums) - 1:
-            max_weight = 0
-            nxt = None
-            for i in range(cur + 1, cur + nums[cur] + 1):
-                if i >= len(nums) - 1:
-                    return times + 1
+        ans = 0
+        n = len(nums)
+        while True:
+            next_pos = 0
+            most_far = 0
+            if cur >= n - 1:
+                return ans
 
-                offset = i - cur
-                weight = nums[i] + offset
-                if weight > max_weight:
-                    max_weight = weight
-                    nxt = i
+            for i in range(1, nums[cur]+1): 
+                # 10 8 - - - - 4 - - -
+                #    0 1 2 3 4 5 6 7 8
+                # ======================
+                #    8 - - - - 9 - - - 
+                if cur + i >= n - 1:
+                    return ans + 1
+                if nums[cur+i] + i > most_far:
+                    next_pos = cur + i
+                    most_far = nums[cur+i] + i
 
-            times += 1
-            cur = nxt
-
-        return times
+            cur = next_pos
+            ans += 1
 ```
 
 ## A122. 买卖股票的最佳时机 II

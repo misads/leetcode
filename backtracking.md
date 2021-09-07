@@ -30,9 +30,13 @@
 
 #### **思路:**
 
-　　dfs。  
+　　方法一： dfs。  
+
+　　方法一： 回溯。  
 
 #### **代码:**
+
+　　**方法一：**
 
 ```python
 class Solution:
@@ -55,6 +59,23 @@ class Solution:
         dfs(0)
         return ans
       
+```
+
+　　**方法二：**
+
+```python
+class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        ans = []
+        def bt(nums, temp):
+            if not nums:
+                ans.append(temp)
+
+            for i, num in enumerate(nums):
+                bt(nums[:i]+nums[i+1:], temp + [num])
+
+        bt(nums, [])
+        return ans
 ```
 
 ## A47. 全排列 II
@@ -83,9 +104,34 @@ class Solution:
 
 #### **思路:**
 
-　　dfs + 集合去重。  
+　　方法一：回溯。
+
+　　方方法二：dfs + 集合去重。  
 
 #### **代码:**
+
+　　**方法一：**
+
+```python
+class Solution:
+    def permuteUnique(self, nums: List[int]) -> List[List[int]]:
+        # 1 1 1 2 2 3
+        ans = []
+        def bt(nums, temp):
+            if not nums:
+                ans.append(temp)
+            for i, num in enumerate(nums):
+                if i != 0 and num == nums[i-1]:  # 去重
+                    continue
+
+                bt(nums[:i]+nums[i+1:], temp+[num])
+
+        nums.sort()
+        bt(nums, [])
+        return ans
+```
+
+　　**方法二：**
 
 ```python
 class Solution:
@@ -165,24 +211,22 @@ class Solution:
 class Solution:
     def solveNQueens(self, n: int) -> List[List[str]]:
         ans = []
-        def dfs(queens, sums, diffs):  # 和、差
-            cur = len(queens)
-            if cur == n:
-                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in queens])  # 转成输出的格式
+        def bt(nums, sums, diffs):
+            line = len(nums)
+            if line == n:
+                ans.append(['.' * q  + 'Q' + '.' * (n-q-1) for q in nums])
                 return
-
             for i in range(n):
-                if i in queens:  # 竖排攻击
+                if i in nums:
                     continue
-                if cur + i in sums:  # sum攻击
+                if line + i in sums:
                     continue
-                if cur - i in diffs:  # diff攻击
+                if line - i in diffs:
                     continue
-                dfs(queens + [i], sums + [cur+i], diffs + [cur-i])
+                bt(nums + [i], sums + [line+i], diffs + [line-i])
 
-        dfs([], [], [])
-        return(ans)
-                            
+        bt([], [], [])
+        return ans     
       
 ```
 

@@ -36,7 +36,7 @@
 
 <img src="_img/a32.png" style="zoom:40%"/>
 
-　　如上图所示，假设`dp[i]`=`6`。那么计算`dp[i+1]`时，如果遇到`')'`，会到`pre`(即`i-dp[i]`)的位置寻找`'('`，如果找到了，则`dp[i+1]`=`dp[i]`+`2`=`8`。并且还要把`pre`之前的也考虑上，即`dp[i+1]`+=`dp[pre - 1]`=`8 + 2`=`10`。  
+　　如上图所示，假设`dp[i]`=`6`。那么计算`dp[i+1]`时，如果遇到`')'`，会看`pre`(即`i-dp[i]`)的位置是不是`'('`，如果是，则`dp[i+1]`=`dp[i]`+`2`=`8`。并且还要把`pre`之前的也考虑上，即`dp[i+1]`+=`dp[pre - 1]`=`8 + 2`=`10`。  
 
 　　方法三：① 用一个栈记录下标，栈的第一个元素记录的是起始位置的**前一个**，初始为`[-1]`。② 元素为`'('`时入栈，为`')'`时出栈。③ 如果出栈后栈空了(右括号数多于左括号)则将当前元素下标放在栈的第一个。  
 
@@ -73,17 +73,14 @@ class Solution:
 class Solution:
     def longestValidParentheses(self, s: str) -> int:
         n = len(s)
-        if n == 0:
-            return 0
-        dp = [0 for i in range(n)]
+        dp = [0 for _ in range(n+1)]  # dp[i] 表示s[:i]
+        s = '#' + s
         for i in range(1, n):
-            char = s[i]
-            if char == ')':
-                pre = i - dp[i-1] -1
-                if pre >= 0 and s[pre] == '(':
-                    dp[i] = dp[i-1] + 2
-                    if pre > 0:
-                        dp[i] += dp[pre - 1]
+            if s[i+1] == '(':
+                continue
+
+            if s[i- dp[i]] == '(':
+                dp[i+1] = dp[i] + 2 + dp[i-dp[i]-1]
 
         return max(dp)
 ```
@@ -159,22 +156,24 @@ class Solution:
 ```python
 class Solution:
     def combinationSum(self, candidates: List[int], target: int) -> List[List[int]]:
-        candidates.sort()  # 123456
-        dp = []
-        for num in range(target+1):
-            temp = [[num]] if num in candidates else []  # 一个数就组成
+        dp = [[] for _ in range(target+1)]
+        candidates.sort()
+        for i in range(1, target+1):
+            temp = []
             for c in candidates:
-                # 由于候选数是排过序的，如果当前候选数已经大于target，就可以不用算更大的候选数了
-                if num - c <= 0:  
+                if i - c < 0:
                     break
-                for prior in dp[num - c]:  # 减去候选的数的组合情况
-                    if c >= prior[-1]:
-                        temp.append(prior + [c])
+                if i - c == 0:
+                    temp.append([c])  # 一个数
+                    continue
+                if len(dp[i-c]):
+                    for combine in dp[i-c]:  # dp[i-c]的组合方式
+                        if c >= combine[-1]:
+                            temp.append(combine+[c])
 
-            dp.append(temp)
+            dp[i] = temp
 
         return dp[target]
-
 
 ```
 
@@ -395,20 +394,19 @@ class Solution:
 ```python
 class Solution:
     def maxSubArray(self, nums: List[int]) -> int:
-        if max(nums) < 0:  # 所有数都是负的
-            return max(nums)
+        n = len(nums)
+        dp = [0 for _ in range(n)]
+        dp[0] = nums[0]
 
-        ans = 0
-        dp = [0 for _ in range(len(nums))]
         for i, num in enumerate(nums):
             if i == 0:
-                dp[i] = max(0, num)
+                continue
+            if dp[i-1] < 0:
+                dp[i] = num
             else:
-                dp[i] = max(dp[i-1] + num, 0)
-            ans = max(ans, dp[i])
+                dp[i] = num + dp[i-1]
 
-        return ans
-
+        return max(dp)
 ```
 
 ## A62. 不同路径
@@ -750,30 +748,28 @@ exection -> execution (插入 'u')
 #### 代码  
 
 ```python
-class Solution(object):
-    def minDistance(self, word1, word2):
-        """
-        :type word1: str
-        :type word2: str
-        :rtype: int
-        """
-        # word1[i] word2[j]
-        # dp[i][j] 表示 word1[i] 变成 word2[j]的最少操作数
-        l1, l2 = len(word1), len(word2)
-        dp = [[0 for j in range(l2+1)]for i in range(l1+1)]
-        for i in range(l1+1):
-            for j in range(l2+1):
-                if i == 0:
-                    dp[i][j] = j
-                elif j == 0:
-                    dp[i][j] = i
+class Solution:
+    def minDistance(self, word1: str, word2: str) -> int:
+        l1 = len(word1)
+        l2 = len(word2)
+        dp = [[float('inf') for _ in range(l2+1)] for _ in range(l1+1)]  # dp[i][j] 表示word1[:i]标为word2[:j]的最少编辑次数
+        dp[0][0] = 0
+        for i in range(1, l1+1):
+            dp[i][0] = i
+        for j in range(1, l2+1):
+            dp[0][j] = j
+
+        for i in range(1, l1+1):
+            for j in range(1, l2+1):
+                if word1[i-1] == word2[j-1]:  # 最后一个字母相同
+                    dp[i][j] = dp[i-1][j-1]
                 else:
-                    if word1[i-1] == word2[j-1]:
-                        dp[i][j] = dp[i-1][j-1]
-                    else:
-                        dp[i][j] = min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]) + 1
-        # print(dp)
-        return dp[-1][-1]
+                    dp[i][j] = dp[i-1][j-1] + 1  # 最后一个字母不同
+
+                dp[i][j] = min(dp[i][j], dp[i][j-1] + 1)  # 增加一个
+                dp[i][j] = min(dp[i][j], dp[i-1][j] + 1)  # 删除一个
+
+        return dp[l1][l2]
 ```
 
 ## A87. 扰乱字符串
@@ -2495,9 +2491,35 @@ class Solution:
 max_coin_k = 1 * nums[k] * 1 + dp(i,k) + dp(k,j)
 ```
 
-　　递归地计算`dp(i,k)`和`dp(k,j)`，找到倒数第二个被戳破的气球。。以此类推。  
+　　要计算`dp[i][j]`，选取一个要戳破的气球🎈`k ∈ [i+1, j-1]`，此时能获得的硬币为`nums[i] * nums[k] * nums[j] + dp(i,k) + dp(k,j)`。如下面的表达式所示：  
+
+```tex
+\displaystyle dp[i][j] = \max_{k\in[i+1, j-1]} nums[i] \times nums[k] \times nums[j]+dp[i][k]+dp[k][j]
+```
 
 #### 代码  
+
+　　dp:
+
+```python
+class Solution:
+    def maxCoins(self, nums: List[int]) -> int:
+        n = len(nums)
+        nums = [1] + nums + [1]
+        dp = [[0 for _ in range(n+2)] for _ in range(n+2)]
+
+        for distance in range(2, n+2):
+            for i in range(0, n-distance+2):  # distance=3, j=0
+                j = i + distance
+                for chuo in range(i+1, j):  # 戳的哪个
+                    dp[i][j] = max(dp[i][j], nums[i]*nums[chuo]*nums[j] + dp[i][chuo] + dp[chuo][j]) 
+
+        return dp[0][n+1]
+            
+```
+
+　　lru_cache:
+
 ```python
 class Solution:
     def maxCoins(self, nums: List[int]) -> int:
@@ -4041,6 +4063,93 @@ class Solution:
 
         return dp[-1]
       
+```
+
+## A1143. 最长公共子序列
+
+难度`中等`
+
+#### 题目描述
+
+给定两个字符串 `text1` 和 `text2`，返回这两个字符串的最长 **公共子序列** 的长度。如果不存在 **公共子序列** ，返回 `0` 。
+
+一个字符串的 **子序列** 是指这样一个新的字符串：它是由原字符串在不改变字符的相对顺序的情况下删除某些字符（也可以不删除任何字符）后组成的新字符串。
+
+- 例如，`"ace"` 是 `"abcde"` 的子序列，但 `"aec"` 不是 `"abcde"` 的子序列。
+
+两个字符串的 **公共子序列** 是这两个字符串所共同拥有的子序列。
+
+> **示例 1：**
+
+```
+输入：text1 = "abcde", text2 = "ace" 
+输出：3  
+解释：最长公共子序列是 "ace" ，它的长度为 3 。
+```
+
+> **示例 2：**
+
+```
+输入：text1 = "abc", text2 = "abc"
+输出：3
+解释：最长公共子序列是 "abc" ，它的长度为 3 。
+```
+
+> **示例 3：**
+
+```
+输入：text1 = "abc", text2 = "def"
+输出：0
+解释：两个字符串没有公共子序列，返回 0 。
+```
+
+**提示：**
+
+- `1 <= text1.length, text2.length <= 1000`
+- `text1` 和 `text2` 仅由小写英文字符组成。
+
+#### 题目链接
+
+<https://leetcode-cn.com/problems/longest-common-subsequence/>
+
+#### **思路:**
+
+　　动态规划，令`dp[i][j]`表示`text1[:i]`和`text2[:j]`的最长公共子序列，有递推公式：
+
+　　**text1[i-1] == text2[j-1]**时：
+
+```tex
+　　dp[i][j] = dp[i-1][j-1] + 1
+```
+
+　　**text1[i-1] != text2[j-1]**时：　　
+
+```tex
+　　dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+```
+
+#### **代码:**
+
+```python
+class Solution(object):
+    def longestCommonSubsequence(self, text1, text2):
+        """
+        :type text1: str
+        :type text2: str
+        :rtype: int
+        """
+        m = len(text1)
+        n = len(text2)
+        dp = [[0 for _ in range(n + 1)] for _ in range(m + 1)]  
+        # dp[i][j] 表示text1[:i]和text2[:j]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if text1[i-1] == text2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                else:
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+
+        return dp[-1][-1]
 ```
 
 ## A1269. 停在原地的方案数

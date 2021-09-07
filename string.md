@@ -1541,37 +1541,38 @@ class Solution:
 #### 代码  
 
 ```python
-from collections import defaultdict
-
-class Solution(object):
-    def minWindow(self, s, t):
-        mem = defaultdict(int)
-        for char in t:  #  统计t每个字母的出现次数
-            mem[char] -= 1  # 负的表示缺的，正的表示多余的
-
-        count = len(t)
+class Solution:
+    def minWindow(self, s: str, t: str) -> str:
+        count = defaultdict(int)
+        count.update(Counter(t))
+        for k in count:
+            count[k] = -count[k]
 
         left = 0
-        min_i, min_j = 0, len(s)
+        score = len(t)
+        ans = '#' * (len(s) + 1)
+        
         for right, char in enumerate(s):
-            if mem[char] < 0:
-                count -= 1
-            mem[char] += 1
-
-            if count == 0:  # 成功匹配
-                while mem[s[left]] > 0:  # 把左边多余的去掉 然后再计算 min max
-                    mem[s[left]] -= 1
+            if count[char] < 0:
+                score -= 1
+            count[char] += 1
+            if score == 0:
+                while count[s[left]] > 0:
+                    count[s[left]] -= 1
                     left += 1
+                    
+                if len(s[left:right+1]) < len(ans):
+                    ans = s[left:right+1]
 
-                if right - left < min_j - min_i:
-                    min_i, min_j = left, right
-
-                mem[s[left]] -= 1
+                count[s[left]] -= 1
                 left += 1
-                count += 1
+                score += 1
 
-        return '' if min_j == len(s) else s[min_i:min_j + 1]
+        if len(ans) > len(s):
+            ans = ''
+        return ans
 
+        
 ```
 
 ## A93. 复原IP地址

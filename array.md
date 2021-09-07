@@ -962,14 +962,14 @@ class Solution:
 ```python
 class Solution:
     def canJump(self, nums: List[int]) -> bool:
-        n = len(nums)
         most_far = 0
+        n = len(nums)
         for i in range(n):
-            if most_far < i:
+            if i > most_far:  # 这个位置比most_far还远
                 return False
-            if i + nums[i] > most_far:
-                most_far = i + nums[i]
-            
+
+            most_far = max(most_far, i+nums[i])
+
         return True
 ```
 
@@ -1719,7 +1719,6 @@ class Solution:
 　　**方法一：**(二分法，2020ms)  
 
 ```python
-import bisect
 class Solution:
     def reversePairs(self, nums: List[int]) -> int:
         asc = []
@@ -1727,8 +1726,8 @@ class Solution:
         for num in nums:
             idx = bisect.bisect(asc, num)
             ans += len(asc) - idx
-            bisect.insort(asc, num)
-
+            asc[idx:idx] = [num]  # 等效于asc.insert(idx, num)， 但是速度更快
+            
         return ans
 
 ```
